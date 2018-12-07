@@ -220,6 +220,36 @@ public class Board {
         }
     }
 
+    public boolean isMate(String color) {
+        boolean res = false;
+        long threatenedCells = 0;
+        if (color.equals("white")) {
+            for (long l : extract(blackRookPosition))
+                threatenedCells |= legalDeplacements(l, "rook");
+            for (long l : extract(blackKnightPosition))
+                threatenedCells |= legalDeplacements(l, "knight");
+            for (long l : extract(blackBishopPosition))
+                threatenedCells |= legalDeplacements(l, "bishop");
+            for (long l : extract(blackQueenPosition))
+                threatenedCells |= legalDeplacements(l, "queen");
+            for (long l : extract(blackPawnPosition))
+                threatenedCells |= legalDeplacements(l, "black_pawn");
+            return (threatenedCells & whiteKingPosition) > 0;
+        } else if (color.equals("black")) {
+            for (long l : extract(whiteRookPosition))
+                threatenedCells |= legalDeplacements(l, "rook");
+            for (long l : extract(whiteKnightPosition))
+                threatenedCells |= legalDeplacements(l, "knight");
+            for (long l : extract(whiteBishopPosition))
+                threatenedCells |= legalDeplacements(l, "bishop");
+            for (long l : extract(whiteQueenPosition))
+                threatenedCells |= legalDeplacements(l, "queen");
+            for (long l : extract(whitePawnPosition))
+                threatenedCells |= legalDeplacements(l, "white_pawn");
+            return (threatenedCells & blackKingPosition) > 0;
+        } else throw new IllegalArgumentException();
+    }
+
     public long legalDeplacements(Long position, String type) {
         long positionsOccupees = this.blackKingPosition
                 | this.whiteKingPosition
@@ -311,11 +341,11 @@ public class Board {
     private List<Long> extract(long l) {
         List<Long> res = new ArrayList<>();
         String binary = Long.toBinaryString(l);
-        String first = "";
-        for (int i = binary.length() - 1; i > 0; i--) {
+        int pow = 0;
+        for (int i = binary.length() - 1; i >= 0; i--) {
             if (binary.charAt(i) == '1')
-                res.add(new Long("1" + first));
-            first = "0" + first;
+                res.add(pow2(pow));
+            pow++;
         }
         return res;
     }
