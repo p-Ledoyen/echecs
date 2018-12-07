@@ -31,6 +31,10 @@ public class Board {
     private HashMap<Long, Long> blackPawnThreatened;
     private HashMap<Long, Long> whitePawnThreatened;
 
+    // true if the castling isn't possible anymore (rook movement or king movement)
+    private boolean noMovementSmallCastling;
+    private boolean noMovementBigCastling;
+
     public Board() {
         // Initilization of the positions
         //      - black pieces
@@ -218,6 +222,42 @@ public class Board {
                 System.out.print(ligne.charAt(j));
             System.out.println();
         }
+    }
+
+    /**
+     * @param type 0 for the "small castling" and 1 for the "big castling"
+     * @return
+     */
+    public boolean isCastlingPossible(int type, String color) {
+        long occupiedCells = this.blackKingPosition
+                | this.whiteKingPosition
+                | this.blackKnightPosition
+                | this.whiteKnightPosition
+                | this.blackQueenPosition
+                | this.whiteQueenPosition
+                | this.blackPawnPosition
+                | this.whitePawnPosition
+                | this.blackRookPosition
+                | this.whiteRookPosition
+                | this.blackBishopPosition
+                | this.whiteBishopPosition;
+
+        boolean noPieces = false;
+        if (color.equals("white") && type == 0)
+            noPieces = (occupiedCells & 32 & 64) == 0;
+        else if (color.equals("white") && type == 1)
+            noPieces = (occupiedCells & 2 & 4 & 8) == 0;
+        else if (color.equals("black") && type == 0)
+            noPieces = (occupiedCells & pow2(57) & pow2(58)) == 0;
+        else if (color.equals("black") && type == 1)
+            noPieces = (occupiedCells & pow2(60) & pow2(61) & pow2(62)) == 0;
+
+        if (type == 0)
+            return noMovementSmallCastling & noPieces;
+        else if (type == 1)
+            return noMovementBigCastling & noPieces;
+        else
+            throw new IllegalArgumentException();
     }
 
     public boolean isMate(String color) {
