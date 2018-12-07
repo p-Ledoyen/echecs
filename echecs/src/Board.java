@@ -1,4 +1,6 @@
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class Board {
 
@@ -202,7 +204,6 @@ public class Board {
             }
             whitePawnThreatened.put(pow2(i), cells);
         }
-
     }
 
     public void afficherLong(long l) {
@@ -219,10 +220,103 @@ public class Board {
         }
     }
 
+    public long legalDeplacements(Long position, String type) {
+        long positionsOccupees = this.blackKingPosition
+                | this.whiteKingPosition
+                | this.blackKnightPosition
+                | this.whiteKnightPosition
+                | this.blackQueenPosition
+                | this.whiteQueenPosition
+                | this.blackPawnPosition
+                | this.whitePawnPosition
+                | this.blackRookPosition
+                | this.whiteRookPosition
+                | this.blackBishopPosition
+                | this.whiteBishopPosition;
+
+        long rookMovements = 0;
+        long bishopMovements = 0;
+        if (type.equals("king"))
+            return this.kingMovements.get(position) & ~positionsOccupees;
+        else if (type.equals("knight"))
+            return this.knightMovements.get(position) & ~positionsOccupees;
+        else if (type.equals("white_pawn"))
+            return this.whitePawnMovements.get(position) & ~positionsOccupees;
+        else if (type.equals("black_pawn"))
+            return this.blackPawnMovements.get(position) & ~positionsOccupees;
+        else if (type.equals("rook") || type.equals("queen")) {
+            for (int i = (int) (Math.log(position) / Math.log(2)) + 8; i < 64; i += 8)
+                if ((i & positionsOccupees) == 0)
+                    rookMovements |= pow2(i);
+                else
+                    break;
+            for (int i = (int) (Math.log(position) / Math.log(2)) - 8; i > 0; i -= 8)
+                if ((i & positionsOccupees) == 0)
+                    rookMovements |= pow2(i);
+                else
+                    break;
+            for (int i = (int) (Math.log(position) / Math.log(2)) - 1; i % 8 != 7; i--)
+                if ((i & positionsOccupees) == 0)
+                    rookMovements |= pow2(i);
+                else
+                    break;
+            for (int i = (int) (Math.log(position) / Math.log(2)) + 1; i % 8 != 0; i++)
+                if ((i & positionsOccupees) == 0)
+                    rookMovements |= pow2(i);
+                else
+                    break;
+        }
+        if (type.equals("bishop") || type.equals("queen")) {
+            for (int i = (int) (Math.log(position) / Math.log(2)) - 9; i > 0 && i % 8 != 7; i -= 9)
+                if ((i & positionsOccupees) == 0)
+                    bishopMovements |= pow2(i);
+                else
+                    break;
+            for (int i = (int) (Math.log(position) / Math.log(2)) - 7; i > 0 && i % 8 != 6; i -= 7)
+                if ((i & positionsOccupees) == 0)
+                    bishopMovements |= pow2(i);
+                else
+                    break;
+            for (int i = (int) (Math.log(position) / Math.log(2)) + 7; i < 64 && i % 8 != 7; i += 7)
+                if ((i & positionsOccupees) == 0)
+                    bishopMovements |= pow2(i);
+                else
+                    break;
+            for (int i = (int) (Math.log(position) / Math.log(2)) + 9; i < 64 && i % 8 != 6; i += 9)
+                if ((i & positionsOccupees) == 0)
+                    bishopMovements |= pow2(i);
+                else
+                    break;
+        }
+
+        switch (type) {
+            case "queen":
+                return rookMovements | bishopMovements;
+            case "rook":
+                return rookMovements;
+            case "bishop":
+                return bishopMovements;
+        }
+
+        throw new IllegalArgumentException();
+    }
+
     private long pow2(int pow) {
         if (pow == 63)
             return (long) -Math.pow(2, 63);
         else
             return (long) Math.pow(2, pow);
+    }
+
+    private List<Long> extract(long l) {
+        List<Long> res = new ArrayList<>();
+        String binary = Long.toBinaryString(l);
+        String first = "";
+        for (int i = binary.length() - 1; i > 0; i--) {
+            if (binary.charAt(i) == '1')
+                res.add(new Long("1" + first));
+            first = "0" + first;
+        }
+        return res;
     }
 }
