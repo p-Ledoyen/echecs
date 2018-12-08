@@ -36,6 +36,9 @@ public class Board {
     private boolean noMovementBigCastling;
 
     public Board() {
+        this.noMovementBigCastling = true;
+        this.noMovementSmallCastling = true;
+
         // Initilization of the positions
         //      - black pieces
         this.blackKingPosition = Library.pow2(60);
@@ -313,23 +316,131 @@ public class Board {
                 | this.whiteBishopPosition;
     }
 
+    public long attack(long position, String type, String color) {
+        long occupiedCells = this.getOccupiedCells();
+
+        long rookMovements = 0;
+        long bishopMovements = 0;
+
+        if (type.equals("king"))
+            return this.kingMovements.get(position);
+        else if (type.equals("knight"))
+            return this.knightMovements.get(position);
+        else if (type.equals("white_pawn"))
+            return this.whitePawnThreatened.get(position);
+        else if (type.equals("black_pawn"))
+            return this.blackPawnThreatened.get(position);
+        else if (type.equals("rook") || type.equals("queen")) {
+            int i = Library.log2(position);
+            while (i < 56) {
+                i += 8;
+                if ((Library.pow2(i) & occupiedCells) == 0)
+                    rookMovements |= Library.pow2(i);
+                else
+                    break;
+            }
+            i = Library.log2(position);
+            while (i > 8) {
+                i -= 8;
+                if ((Library.pow2(i) & occupiedCells) == 0)
+                    rookMovements |= Library.pow2(i);
+                else
+                    break;
+            }
+            i = Library.log2(position);
+            while (i % 8 != 0) {
+                i--;
+                if ((Library.pow2(i) & occupiedCells) == 0)
+                    rookMovements |= Library.pow2(i);
+                else
+                    break;
+            }
+            i = Library.log2(position);
+            while (i % 8 != 7) {
+                i++;
+                if ((Library.pow2(i) & occupiedCells) == 0)
+                    rookMovements |= Library.pow2(i);
+                else
+                    break;
+            }
+        }
+        if (type.equals("bishop") || type.equals("queen")) {
+            int i = Library.log2(position);
+            while (i > 8 && i % 8 != 0) {
+                i -= 9;
+                if ((Library.pow2(i) & occupiedCells) == 0)
+                    bishopMovements |= Library.pow2(i);
+                else
+                    break;
+            }
+            i = Library.log2(position);
+            while (i > 8 && i % 8 != 7) {
+                i -= 7;
+                if ((Library.pow2(i) & occupiedCells) == 0)
+                    bishopMovements |= Library.pow2(i);
+                else
+                    break;
+            }
+            i = Library.log2(position);
+            while (i < 56 && i % 8 != 0) {
+                i += 7;
+                if ((Library.pow2(i) & occupiedCells) == 0)
+                    bishopMovements |= Library.pow2(i);
+                else
+                    break;
+            }
+            i = Library.log2(position);
+            while (i < 56 && i % 8 != 7) {
+                i += 9;
+                if ((Library.pow2(i) & occupiedCells) == 0)
+                    bishopMovements |= Library.pow2(i);
+                else
+                    break;
+            }
+        }
+
+        switch (type) {
+            case "queen":
+                return rookMovements | bishopMovements;
+            case "rook":
+                return rookMovements;
+            case "bishop":
+                return bishopMovements;
+        }
+
+        throw new IllegalArgumentException();
+    }
+
     public long getThreatenedCells(String color) {
-        if (color.equals(Constante.WHITE))
-            return this.kingMovements.get(this.whiteKingPosition)
-                    | this.queenMovements.get(this.whiteQueenPosition)
-                    | this.knightMovements.get(this.whiteKnightPosition)
-                    | this.rookMovements.get(this.whiteRookPosition)
-                    | this.bishopMovements.get(this.whiteBishopPosition)
-                    | this.whitePawnThreatened.get(this.whitePawnPosition);
-        else if (color.equals(Constante.BLACK))
-            return this.kingMovements.get(this.whiteKingPosition)
-                    | this.queenMovements.get(this.blackQueenPosition)
-                    | this.knightMovements.get(this.blackKnightPosition)
-                    | this.rookMovements.get(this.blackRookPosition)
-                    | this.bishopMovements.get(this.blackBishopPosition)
-                    | this.blackPawnThreatened.get(this.blackPawnPosition);
-        else
+        long res = 0;
+        if (color.equals(Constante.WHITE)) {
+            res |= this.attack(this.whiteKingPosition, "king", color);
+            for (long l : Library.extract(this.whiteQueenPosition))
+                res |= this.attack(l, "queen", color);
+            for (long l : Library.extract(this.whiteKnightPosition))
+                res |= this.attack(l, "knight", color);
+            for (long l : Library.extract(this.whiteRookPosition))
+                res |= this.attack(l, "rook", color);
+            for (long l : Library.extract(this.whiteBishopPosition))
+                res |= this.attack(l, "bishop", color);
+            for (long l : Library.extract(this.whitePawnPosition))
+                res |= this.attack(l, "white_pawn", color);
+        } else if (color.equals(Constante.BLACK)) {
+            res |= this.attack(this.blackKingPosition, "king", color);
+            for (long l : Library.extract(this.blackQueenPosition))
+                res |= this.attack(l, "queen", color);
+            for (long l : Library.extract(this.blackKnightPosition))
+                res |= this.attack(l, "knight", color);
+            for (long l : Library.extract(this.blackRookPosition))
+                res |= this.attack(l, "rook", color);
+            for (long l : Library.extract(this.blackBishopPosition))
+                res |= this.attack(l, "bishop", color);
+            for (long l : Library.extract(this.blackPawnPosition))
+                res |= this.attack(l, "black_pawn", color);
+        } else {
             throw new IllegalArgumentException();
+        }
+        return res;
     }
 
     /**
@@ -362,87 +473,164 @@ public class Board {
         long threatenedCells = 0;
         if (color.equals(Constante.WHITE)) {
             for (long l : Library.extract(blackRookPosition))
-                threatenedCells |= legalDeplacements(l, "rook");
+                threatenedCells |= legalDeplacements(l, "rook", color);
             for (long l : Library.extract(blackKnightPosition))
-                threatenedCells |= legalDeplacements(l, "knight");
+                threatenedCells |= legalDeplacements(l, "knight", color);
             for (long l : Library.extract(blackBishopPosition))
-                threatenedCells |= legalDeplacements(l, "bishop");
+                threatenedCells |= legalDeplacements(l, "bishop", color);
             for (long l : Library.extract(blackQueenPosition))
-                threatenedCells |= legalDeplacements(l, "queen");
+                threatenedCells |= legalDeplacements(l, "queen", color);
             for (long l : Library.extract(blackPawnPosition))
-                threatenedCells |= legalDeplacements(l, "black_pawn");
+                threatenedCells |= legalDeplacements(l, "black_pawn", color);
             return (threatenedCells & whiteKingPosition) > 0;
         } else if (color.equals(Constante.BLACK)) {
             for (long l : Library.extract(whiteRookPosition))
-                threatenedCells |= legalDeplacements(l, "rook");
+                threatenedCells |= legalDeplacements(l, "rook", color);
             for (long l : Library.extract(whiteKnightPosition))
-                threatenedCells |= legalDeplacements(l, "knight");
+                threatenedCells |= legalDeplacements(l, "knight", color);
             for (long l : Library.extract(whiteBishopPosition))
-                threatenedCells |= legalDeplacements(l, "bishop");
+                threatenedCells |= legalDeplacements(l, "bishop", color);
             for (long l : Library.extract(whiteQueenPosition))
-                threatenedCells |= legalDeplacements(l, "queen");
+                threatenedCells |= legalDeplacements(l, "queen", color);
             for (long l : Library.extract(whitePawnPosition))
-                threatenedCells |= legalDeplacements(l, "white_pawn");
+                threatenedCells |= legalDeplacements(l, "white_pawn", color);
             return (threatenedCells & blackKingPosition) > 0;
         } else throw new IllegalArgumentException();
     }
 
-    public long legalDeplacements(Long position, String type) {
-        long positionsOccupees = this.getOccupiedCells();
+    public long legalDeplacements(Long position, String type, String color) {
+        long myPieces = 0;
+        long adversePieces = 0;
+        if (color.equals(Constante.BLACK))
+            adversePieces = this.whiteBishopPosition
+                    | this.whiteKingPosition
+                    | this.whiteKnightPosition
+                    | this.whiteRookPosition
+                    | this.whiteQueenPosition
+                    | this.whitePawnPosition;
+
+        else if (color.equals(Constante.WHITE))
+            adversePieces = this.blackBishopPosition
+                    | this.blackKingPosition
+                    | this.blackKnightPosition
+                    | this.blackRookPosition
+                    | this.blackQueenPosition
+                    | this.blackPawnPosition;
+        else
+            throw new IllegalArgumentException();
+
+        if (color.equals(Constante.WHITE))
+            myPieces = this.whiteBishopPosition
+                    | this.whiteKingPosition
+                    | this.whiteKnightPosition
+                    | this.whiteRookPosition
+                    | this.whiteQueenPosition
+                    | this.whitePawnPosition;
+
+        else if (color.equals(Constante.BLACK))
+            myPieces = this.blackBishopPosition
+                    | this.blackKingPosition
+                    | this.blackKnightPosition
+                    | this.blackRookPosition
+                    | this.blackQueenPosition
+                    | this.blackPawnPosition;
 
         long rookMovements = 0;
         long bishopMovements = 0;
+
         if (type.equals("king"))
-            return this.kingMovements.get(position) & ~positionsOccupees;
+            return this.kingMovements.get(position) & ~myPieces;
         else if (type.equals("knight"))
-            return this.knightMovements.get(position) & ~positionsOccupees;
+            return this.knightMovements.get(position) & ~myPieces;
         else if (type.equals("white_pawn"))
-            return this.whitePawnMovements.get(position) & ~positionsOccupees;
+            return this.whitePawnMovements.get(position) & ~myPieces & ~adversePieces
+                    | this.whitePawnThreatened.get(position) & adversePieces;
         else if (type.equals("black_pawn"))
-            return this.blackPawnMovements.get(position) & ~positionsOccupees;
+            return this.blackPawnMovements.get(position) & ~myPieces & ~adversePieces
+                    | this.blackPawnMovements.get(position) & adversePieces;
         else if (type.equals("rook") || type.equals("queen")) {
-            for (int i = (int) (Math.log(position) / Math.log(2)) + 8; i < 64; i += 8)
-                if ((Library.pow2(i) & positionsOccupees) == 0)
+            int i = Library.log2(position);
+            while (i < 56) {
+                i += 8;
+                if ((Library.pow2(i) & myPieces) == 0)
                     rookMovements |= Library.pow2(i);
                 else
                     break;
-            for (int i = (int) (Math.log(position) / Math.log(2)) - 8; i > 0; i -= 8)
-                if ((Library.pow2(i) & positionsOccupees) == 0)
+                if ((Library.pow2(i) & adversePieces) > 0)
+                    break;
+            }
+            i = Library.log2(position);
+            while (i > 8) {
+                i -= 8;
+                if ((Library.pow2(i) & myPieces) == 0)
                     rookMovements |= Library.pow2(i);
                 else
                     break;
-            for (int i = (int) (Math.log(position) / Math.log(2)) - 1; i % 8 != 0; i--)
-                if ((Library.pow2(i) & positionsOccupees) == 0)
+                if ((Library.pow2(i) & adversePieces) > 0)
+                    break;
+            }
+            i = Library.log2(position);
+            while (i % 8 != 0) {
+                i--;
+                if ((Library.pow2(i) & myPieces) == 0)
                     rookMovements |= Library.pow2(i);
                 else
                     break;
-            for (int i = (int) (Math.log(position) / Math.log(2)) + 1; i % 8 != 7; i++)
-                if ((Library.pow2(i) & positionsOccupees) == 0)
+                if ((Library.pow2(i) & adversePieces) > 0)
+                    break;
+            }
+            i = Library.log2(position);
+            while (i % 8 != 7) {
+                i++;
+                if ((Library.pow2(i) & myPieces) == 0)
                     rookMovements |= Library.pow2(i);
                 else
                     break;
+                if ((Library.pow2(i) & adversePieces) > 0)
+                    break;
+            }
         }
         if (type.equals("bishop") || type.equals("queen")) {
-            for (int i = (int) (Math.log(position) / Math.log(2)) - 9; i > 0 && i % 8 != 7; i -= 9)
-                if ((Library.pow2(i) & positionsOccupees) == 0)
+            int i = Library.log2(position);
+            while (i > 8 && i % 8 != 0) {
+                i -= 9;
+                if ((Library.pow2(i) & myPieces) == 0)
                     bishopMovements |= Library.pow2(i);
                 else
                     break;
-            for (int i = (int) (Math.log(position) / Math.log(2)) - 7; i > 0 && i % 8 != 0; i -= 7)
-                if ((Library.pow2(i) & positionsOccupees) == 0)
+                if ((Library.pow2(i) & adversePieces) > 0)
+                    break;
+            }
+            i = Library.log2(position);
+            while (i > 8 && i % 8 != 7) {
+                i -= 7;
+                if ((Library.pow2(i) & myPieces) == 0)
                     bishopMovements |= Library.pow2(i);
                 else
                     break;
-            for (int i = (int) (Math.log(position) / Math.log(2)) + 7; i < 64 && i % 8 != 7; i += 7)
-                if ((Library.pow2(i) & positionsOccupees) == 0)
+                if ((Library.pow2(i) & adversePieces) > 0)
+                    break;
+            }
+            i = Library.log2(position);
+            while (i < 56 && i % 8 != 0) {
+                i += 7;
+                if ((Library.pow2(i) & myPieces) == 0)
                     bishopMovements |= Library.pow2(i);
                 else
                     break;
-            for (int i = (int) (Math.log(position) / Math.log(2)) + 9; i < 64 && i % 8 != 0; i += 9)
-                if ((Library.pow2(i) & positionsOccupees) == 0)
+                if ((Library.pow2(i) & adversePieces) > 0)
+                    break;
+            }
+            i = Library.log2(position);
+            while (i < 56 && i % 8 != 7) {
+                i += 9;
+                if ((Library.pow2(i) & myPieces) == 0)
                     bishopMovements |= Library.pow2(i);
                 else
                     break;
+                if ((Library.pow2(i) & adversePieces) > 0)
+                    break;
+            }
         }
 
         switch (type) {
@@ -460,29 +648,29 @@ public class Board {
     public HashMap<Long, Couple> allLegalDeplacements(String color) {
         HashMap<Long, Couple> res = new HashMap<>();
         if (color.equals(Constante.BLACK)) {
-            res.put(this.blackKingPosition, new Couple("king", this.legalDeplacements(blackKingPosition, "king")));
+            res.put(this.blackKingPosition, new Couple("king", this.legalDeplacements(blackKingPosition, "king", Constante.BLACK)));
             for (long l : Library.extract(this.blackQueenPosition))
-                res.put(l, new Couple("queen", this.legalDeplacements(l, "queen")));
+                res.put(l, new Couple("queen", this.legalDeplacements(l, "queen", Constante.BLACK)));
             for (long l : Library.extract(this.blackRookPosition))
-                res.put(l, new Couple("rook", this.legalDeplacements(l, "rook")));
+                res.put(l, new Couple("rook", this.legalDeplacements(l, "rook", Constante.BLACK)));
             for (long l : Library.extract(this.blackBishopPosition))
-                res.put(l, new Couple("bishop", this.legalDeplacements(l, "bishop")));
+                res.put(l, new Couple("bishop", this.legalDeplacements(l, "bishop", Constante.BLACK)));
             for (long l : Library.extract(this.blackKnightPosition))
-                res.put(l, new Couple("knight", this.legalDeplacements(l, "knight")));
+                res.put(l, new Couple("knight", this.legalDeplacements(l, "knight", Constante.BLACK)));
             for (long l : Library.extract(this.blackPawnPosition))
-                res.put(l, new Couple("pawn", this.legalDeplacements(l, "black_pawn")));
+                res.put(l, new Couple("pawn", this.legalDeplacements(l, "black_pawn", Constante.BLACK)));
         } else if (color.equals(Constante.WHITE)) {
-            res.put(this.whiteKingPosition, new Couple("king", this.legalDeplacements(blackKingPosition, "king")));
+            res.put(this.whiteKingPosition, new Couple("king", this.legalDeplacements(whiteKingPosition, "king", Constante.WHITE)));
             for (long l : Library.extract(this.whiteQueenPosition))
-                res.put(l, new Couple("queen", this.legalDeplacements(l, "queen")));
+                res.put(l, new Couple("queen", this.legalDeplacements(l, "queen", Constante.WHITE)));
             for (long l : Library.extract(this.whiteRookPosition))
-                res.put(l, new Couple("rook", this.legalDeplacements(l, "rook")));
+                res.put(l, new Couple("rook", this.legalDeplacements(l, "rook", Constante.WHITE)));
             for (long l : Library.extract(this.whiteBishopPosition))
-                res.put(l, new Couple("bishop", this.legalDeplacements(l, "bishop")));
+                res.put(l, new Couple("bishop", this.legalDeplacements(l, "bishop", Constante.WHITE)));
             for (long l : Library.extract(this.whiteKnightPosition))
-                res.put(l, new Couple("knight", this.legalDeplacements(l, "knight")));
+                res.put(l, new Couple("knight", this.legalDeplacements(l, "knight", Constante.WHITE)));
             for (long l : Library.extract(this.whitePawnPosition))
-                res.put(l, new Couple("pawn", this.legalDeplacements(l, "white_pawn")));
+                res.put(l, new Couple("pawn", this.legalDeplacements(l, "white_pawn", Constante.WHITE)));
         } else {
             throw new IllegalArgumentException();
         }

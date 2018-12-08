@@ -10,6 +10,13 @@ public abstract class Library {
             return (long) Math.pow(2, pow);
     }
 
+    public static int log2(long l) {
+        if (l < 0)
+            return 63;
+        else
+            return (int) (Math.log(l) / Math.log(2));
+    }
+
     public static List<Long> extract(long l) {
         List<Long> res = new ArrayList<>();
         String binary = Long.toBinaryString(l);
@@ -34,5 +41,13 @@ public abstract class Library {
                 System.out.print(ligne.charAt(j));
             System.out.println();
         }
+    }
+
+    public static String getCase(long l) {
+        String[] letters = {"a", "b", "c", "d", "e", "f", "g", "h"};
+        int pow = (int) (Math.log(l) / Math.log(2));
+        int row = pow / 8 + 1;
+        int column = pow % 8;
+        return letters[column] + row;
     }
 }
