@@ -1,11 +1,12 @@
-import java.util.Scanner;
-
-
 public class Engine {
 
-    Board board = new Board();
-    Evaluator evaluator = new Evaluator();
+    Board board;
+    Evaluator evaluator;
 
+    public Engine() {
+        this.board = new Board();
+        this.evaluator = new Evaluator();
+    }
 
     public void run(){
         //Start input thread
