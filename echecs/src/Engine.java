@@ -1,3 +1,6 @@
+import java.util.Comparator;
+import java.util.PriorityQueue;
+
 public class Engine {
 
     Board board;
@@ -6,6 +9,19 @@ public class Engine {
     public Engine() {
         this.board = new Board();
         this.evaluator = new Evaluator();
+
+        PriorityQueue<Couple> scores = new PriorityQueue<>(Comparator.comparingInt(Couple::getSecond));
+
+        for (Movement m : board.allLegalDeplacements(Color.WHITE)) {
+            board.makeMovement(m);
+            scores.add(new Couple(m, evaluator.evaluate(board, Color.WHITE)));
+            board.cancelMovement(m);
+        }
+
+        for (Couple c : scores) {
+            System.out.println(c.getFirst() + "=" + c.getSecond());
+        }
+
     }
 
     public void run(){
