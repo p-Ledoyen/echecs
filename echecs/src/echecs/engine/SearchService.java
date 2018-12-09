@@ -22,33 +22,37 @@ public class SearchService {
     }
 
     public Movement miniMaxDecision(State state) {
-        return maxValue(state).getFirst();
+        return maxValue(state, -10000, 10000).getFirst();
     }
 
-    private Couple maxValue(State state) {
+    private Couple maxValue(State state, int alpha, int beta) {
         if (state.getDepth() == this.maxDepth)
-            //return this.evaluator.evaluate(state.getBoard(),1);
             return new Couple(state.getMovement(), this.evaluator.evaluate(state.getBoard()));
         Couple res = new Couple(null, -10000);
         for (State s : state.successors()) {
             //  v = Math.max(v, minValue(s));
-            Couple tmp = minValue(s);
+            Couple tmp = minValue(s, alpha, beta);
             if (tmp.getSecond() > res.getSecond())
-                res = tmp;
+                res = new Couple(s.getMovement(), tmp.getSecond());
+            if (res.getSecond() >= beta)
+                return res;
+            alpha = Math.max(alpha, res.getSecond());
         }
         return res;
     }
 
-    private Couple minValue(State state) {
+    private Couple minValue(State state, int alpha, int beta) {
         if (state.getDepth() == this.maxDepth)
-            //return this.evaluator.evaluate(state.getBoard(),1);
             return new Couple(state.getMovement(), this.evaluator.evaluate(state.getBoard()));
         Couple res = new Couple(null, 10000);
         for (State s : state.successors()) {
             //  v = Math.max(v, minValue(s));
-            Couple tmp = maxValue(s);
+            Couple tmp = maxValue(s, alpha, beta);
             if (tmp.getSecond() < res.getSecond())
                 res = new Couple(s.getMovement(), tmp.getSecond());
+            if (res.getSecond() <= alpha)
+                return res;
+            beta = Math.min(beta, res.getSecond());
         }
         return res;
     }
