@@ -4,7 +4,7 @@ import echecs.Color;
 
 import java.util.HashMap;
 
-public abstract class Piece {
+public abstract class Piece implements Cloneable {
 
     protected Long position;
     protected HashMap<Long, Long> movements;
@@ -35,4 +35,13 @@ public abstract class Piece {
     public abstract long getThreatened(long occupiedCells);
 
     public abstract long legalMovements(long myPieces, long adversePieces);
+
+    public Piece copy() {
+        try {
+            return (Piece) this.clone();
+        } catch (CloneNotSupportedException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }

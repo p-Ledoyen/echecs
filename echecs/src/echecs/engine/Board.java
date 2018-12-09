@@ -8,7 +8,7 @@ import echecs.pieces.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Board {
+public class Board implements Cloneable {
 
     private List<Piece> pieces;
 
@@ -144,7 +144,6 @@ public class Board {
             if (color == p.getColor()) {
                 List<Long> finalPositions = Library.extract(this.legalDeplacements(p));
                 for (long l : finalPositions) {
-                    Library.afficherLong(l);
                     res.add(new Movement(p, p.getPosition(), l));
                 }
             }
@@ -168,4 +167,12 @@ public class Board {
         Library.afficherLong(this.getOccupiedCells());
     }
 
+    public Board copy() {
+        Board copy = new Board();
+        copy.pieces.clear();
+        for (Piece p : pieces) {
+            copy.pieces.add((Piece) p.copy());
+        }
+        return copy;
+    }
 }

@@ -12,7 +12,14 @@ public class Evaluator {
     public static final int BishopValue = 3;
     public static final int PawnValue = 1;
 
-    public int evaluate(Board board, Color color) {
+    public Color color = Color.WHITE;
+
+    /**
+     * @param board
+     * @param factor 1 / -1
+     * @return
+     */
+    public int evaluate(Board board) {
         int evaluation = 0;
         // Value of echecs.pieces
         for (Piece p : board.getPieces())
@@ -76,7 +83,7 @@ public class Evaluator {
 
         // Malus
         //      - Distance to castle
-        int distanceToCastle = 0;
+    /*    int distanceToCastle = 0;
         long occupiedCells = board.getOccupiedCells();
         if (board.isCastlingPossible(0, Color.WHITE)) {
             if ((occupiedCells & Library.pow2(5)) > 0)
@@ -111,7 +118,7 @@ public class Evaluator {
         if (color == Color.BLACK)
             evaluation += distanceToCastle;
         else
-            evaluation -= distanceToCastle;
+            evaluation -= distanceToCastle;*/
 
         // tropisme (roi protégé par une pièce elle même menacée
 
