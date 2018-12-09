@@ -1,5 +1,3 @@
-import java.util.List;
-
 public class Evaluator {
 
     public static final int QueenValue = 9;
@@ -8,70 +6,53 @@ public class Evaluator {
     public static final int BishopValue = 3;
     public static final int PawnValue = 1;
 
-    public int evaluate(Board board, String color) {
+    public int evaluate(Board board, Color color) {
         int evaluation = 0;
         // Value of pieces
-        evaluation += board.numberPieces(board.getBlackQueenPosition()) * QueenValue;
-        evaluation += board.numberPieces(board.getBlackKnightPosition()) * KnightValue;
-        evaluation += board.numberPieces(board.getBlackRookPosition()) * RookValue;
-        evaluation += board.numberPieces(board.getBlackBishopPosition()) * BishopValue;
-        evaluation += board.numberPieces(board.getBlackPawnPosition()) * PawnValue;
-
-        evaluation -= board.numberPieces(board.getWhiteQueenPosition()) * QueenValue;
-        evaluation -= board.numberPieces(board.getWhiteKnightPosition()) * KnightValue;
-        evaluation -= board.numberPieces(board.getWhiteRookPosition()) * RookValue;
-        evaluation -= board.numberPieces(board.getWhiteBishopPosition()) * BishopValue;
-        evaluation -= board.numberPieces(board.getWhitePawnPosition()) * PawnValue;
+        for (Piece p : board.getPieces())
+            if (p.getColor() == color)
+                evaluation += p.getValue();
+            else
+                evaluation -= p.getValue();
 
         // Bonus
         //      - freedom degree
-        evaluation += board.numberPieces(board.legalDeplacements(board.getBlackKingPosition(), "king", Constante.BLACK));
-        for (long l : Library.extract(board.getBlackKnightPosition()))
-            evaluation += board.numberPieces(board.legalDeplacements(l, "knight", Constante.BLACK));
-        for (long l : Library.extract(board.getBlackQueenPosition()))
-            evaluation += board.numberPieces(board.legalDeplacements(l, "queen", Constante.BLACK));
-        for (long l : Library.extract(board.getBlackRookPosition()))
-            evaluation += board.numberPieces(board.legalDeplacements(l, "rook", Constante.BLACK));
-        for (long l : Library.extract(board.getBlackBishopPosition()))
-            evaluation += board.numberPieces(board.legalDeplacements(l, "bishop", Constante.BLACK));
-        for (long l : Library.extract(board.getBlackPawnPosition()))
-            evaluation += board.numberPieces(board.legalDeplacements(l, "black_pawn", Constante.BLACK));
-
-        evaluation -= board.numberPieces(board.legalDeplacements(board.getWhiteKingPosition(), "king", Constante.WHITE));
-        for (long l : Library.extract(board.getWhiteKnightPosition()))
-            evaluation -= board.numberPieces(board.legalDeplacements(l, "knight", Constante.WHITE));
-        for (long l : Library.extract(board.getWhiteQueenPosition()))
-            evaluation -= board.numberPieces(board.legalDeplacements(l, "queen", Constante.WHITE));
-        for (long l : Library.extract(board.getWhiteRookPosition()))
-            evaluation -= board.numberPieces(board.legalDeplacements(l, "rook", Constante.WHITE));
-        for (long l : Library.extract(board.getWhiteBishopPosition()))
-            evaluation -= board.numberPieces(board.legalDeplacements(l, "bishop", Constante.WHITE));
-        for (long l : Library.extract(board.getWhitePawnPosition()))
-            evaluation -= board.numberPieces(board.legalDeplacements(l, "white_pawn", Constante.WHITE));
+        for (Piece p : board.getPieces())
+            if (p.getColor() == color)
+                evaluation += board.numberPieces(board.legalDeplacements(p));
+            else
+                evaluation -= board.numberPieces(board.legalDeplacements(p));
 
         //      - control center
-        long blackThreatenedCells = board.getThreatenedCells("black");
-        long whiteThreatenedCells = board.getThreatenedCells("white");
+        long blackThreatenedCells = board.getThreatenedCells(Color.BLACK);
+        long whiteThreatenedCells = board.getThreatenedCells(Color.WHITE);
 
+        int controlCenter = 0;
         if ((blackThreatenedCells & Library.pow2(35)) > 0)
-            evaluation += 1;
+            controlCenter += 1;
         if ((blackThreatenedCells & Library.pow2(36)) > 0)
-            evaluation += 1;
+            controlCenter += 1;
         if ((blackThreatenedCells & Library.pow2(27)) > 0)
-            evaluation += 3;
+            controlCenter += 3;
         if ((blackThreatenedCells & Library.pow2(28)) > 0)
-            evaluation += 3;
+            controlCenter += 3;
         if ((whiteThreatenedCells & Library.pow2(35)) > 0)
-            evaluation -= 3;
+            controlCenter -= 3;
         if ((whiteThreatenedCells & Library.pow2(36)) > 0)
-            evaluation -= 3;
+            controlCenter -= 3;
         if ((whiteThreatenedCells & Library.pow2(27)) > 0)
-            evaluation -= 1;
+            controlCenter -= 1;
         if ((whiteThreatenedCells & Library.pow2(28)) > 0)
-            evaluation -= 1;
+            controlCenter -= 1;
+
+        if (color == Color.BLACK)
+            evaluation += controlCenter;
+        else
+            evaluation -= controlCenter;
+
 
         // rooks on the same column
-        List<Long> blackRooks = Library.extract(board.getBlackRookPosition());
+   /*     List<Long> blackRooks = Library.extract(board.getBlackRookPosition());
         List<Long> whiteRooks = Library.extract(board.getWhiteRookPosition());
 
         if (Library.log2(blackRooks.get(0)) % 8 == Library.log2(blackRooks.get(1)) % 8)
@@ -85,40 +66,46 @@ public class Evaluator {
             evaluation += (6 - Library.log2(l) / 8);
 
         for (long l : Library.extract(board.getWhitePawnPosition()))
-            evaluation -= (Library.log2(l) / 8 - 1);
+            evaluation -= (Library.log2(l) / 8 - 1);*/
 
         // Malus
-        //      - DistanceToCastle
+        //      - Distance to castle
+        int distanceToCastle = 0;
         long occupiedCells = board.getOccupiedCells();
-        if (board.isCastlingPossible(0, "white")) {
+        if (board.isCastlingPossible(0, Color.WHITE)) {
             if ((occupiedCells & Library.pow2(5)) > 0)
-                evaluation -= 1;
+                distanceToCastle -= 1;
             if ((occupiedCells & Library.pow2(6)) > 0)
-                evaluation -= 1;
+                distanceToCastle -= 1;
         }
-        if (board.isCastlingPossible(1, "white")) {
+        if (board.isCastlingPossible(1, Color.WHITE)) {
             if ((occupiedCells & Library.pow2(1)) > 0)
-                evaluation -= 1;
+                distanceToCastle -= 1;
             if ((occupiedCells & Library.pow2(2)) > 0)
-                evaluation -= 1;
+                distanceToCastle -= 1;
             if ((occupiedCells & Library.pow2(3)) > 0)
-                evaluation -= 1;
+                distanceToCastle -= 1;
         }
 
-        if (board.isCastlingPossible(0, "black")) {
+        if (board.isCastlingPossible(0, Color.BLACK)) {
             if ((occupiedCells & Library.pow2(61)) > 0)
-                evaluation -= 1;
+                distanceToCastle -= 1;
             if ((occupiedCells & Library.pow2(62)) > 0)
-                evaluation -= 1;
+                distanceToCastle -= 1;
         }
-        if (board.isCastlingPossible(1, "black")) {
+        if (board.isCastlingPossible(1, Color.BLACK)) {
             if ((occupiedCells & Library.pow2(57)) > 0)
-                evaluation -= 1;
+                distanceToCastle -= 1;
             if ((occupiedCells & Library.pow2(58)) > 0)
-                evaluation -= 1;
+                distanceToCastle -= 1;
             if ((occupiedCells & Library.pow2(59)) > 0)
-                evaluation -= 1;
+                distanceToCastle -= 1;
         }
+
+        if (color == Color.BLACK)
+            evaluation += distanceToCastle;
+        else
+            evaluation -= distanceToCastle;
 
         // tropisme (roi protégé par une pièce elle même menacée
 
@@ -128,11 +115,6 @@ public class Evaluator {
 
         // pions meme ligne
 
-        if (color.equals("black"))
-            return evaluation;
-        else if (color.equals("white"))
-            return -evaluation;
-        else
-            throw new IllegalArgumentException();
+        return evaluation;
     }
 }
