@@ -1,3 +1,5 @@
+package echecs;
+
 import java.util.ArrayList;
 import java.util.List;
 

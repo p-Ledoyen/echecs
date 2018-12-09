@@ -1,3 +1,7 @@
+package echecs.pieces;
+
+import echecs.Color;
+
 import java.util.HashMap;
 
 public abstract class Piece {

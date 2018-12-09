@@ -1,8 +1,13 @@
+package echecs.pieces;
+
+import echecs.Color;
+import echecs.Library;
+
 import java.util.HashMap;
 
-public class BlackPawn extends Piece {
+public class WhitePawn extends Piece {
 
-    public BlackPawn(int pow, Color color) {
+    public WhitePawn(int pow, Color color) {
         this.color = color;
         this.value = 1;
 
@@ -11,10 +16,10 @@ public class BlackPawn extends Piece {
         this.movements = new HashMap<>();
         for (int i = 0; i < 64; i++) {
             long dep = 0;
-            if (i > 47 && i < 56)
-                dep |= Library.pow2(i - 16);
-            if (i > 7)
-                dep |= Library.pow2(i - 8);
+            if (i > 7 && i < 16)
+                dep |= Library.pow2(i + 16);
+            if (i < 56)
+                dep |= Library.pow2(i + 8);
 
             this.movements.put(Library.pow2(i), dep);
         }
@@ -22,11 +27,11 @@ public class BlackPawn extends Piece {
         this.threatened = new HashMap<>();
         for (int i = 0; i < 64; i++) {
             long cells = 0;
-            if (i > 7) {
+            if (i < 56) {
                 if (i % 8 != 0)
-                    cells |= Library.pow2(i - 9);
+                    cells |= Library.pow2(i + 7);
                 if (i % 8 != 7)
-                    cells |= Library.pow2(i - 7);
+                    cells |= Library.pow2(i + 9);
             }
             this.threatened.put(Library.pow2(i), cells);
         }

@@ -1,3 +1,8 @@
+package echecs.pieces;
+
+import echecs.Color;
+import echecs.Library;
+
 import java.util.HashMap;
 
 public class King extends Piece {

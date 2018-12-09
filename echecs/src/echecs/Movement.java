@@ -1,3 +1,7 @@
+package echecs;
+
+import echecs.pieces.Piece;
+
 public class Movement {
 
     private Piece piece;
