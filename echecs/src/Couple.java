@@ -1,18 +1,18 @@
 public class Couple {
 
-    private String first;
-    private long second;
+    private Movement first;
+    private int second;
 
-    public Couple(String first, long second) {
+    public Couple(Movement first, int second) {
         this.first = first;
         this.second = second;
     }
 
-    public String getFirst() {
+    public Movement getFirst() {
         return first;
     }
 
-    public long getSecond() {
+    public int getSecond() {
         return second;
     }
 }
