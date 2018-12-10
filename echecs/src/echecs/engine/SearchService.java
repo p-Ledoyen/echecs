@@ -4,6 +4,9 @@ import echecs.Color;
 import echecs.Couple;
 import echecs.Movement;
 
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedDeque;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,6 +16,7 @@ public class SearchService {
     private int maxDepth;
     private Board board;
     private Color myColor;
+    private Queue<Movement> tree;
     private List<Couple> prevision;
 
     private int alpha;
@@ -23,6 +27,7 @@ public class SearchService {
         this.maxDepth = maxDepth;
         this.myColor = myColor;
         this.board = board;
+        this.tree = new ConcurrentLinkedDeque<>();
         this.alpha = -100000;
         this.beta = 100000;
     }
@@ -31,7 +36,7 @@ public class SearchService {
         this.myColor = myColor;
     }
 
-    public List<Couple> miniMaxDecision() {
+    public String miniMaxDecision() {
      /*   if (prevision != null) {
             prevision.remove(prevision.size() - 1);
             prevision.remove(prevision.size() - 1);
@@ -67,7 +72,7 @@ public class SearchService {
 */
 
         this.prevision = maxValue(0);
-        return prevision;
+        return prevision.get(prevision.size()-1).getFirst().toString();
     }
 
     private List<Couple> maxValue(int depth) {
@@ -81,7 +86,9 @@ public class SearchService {
 
 
         // all movements
+
         for (Movement m : this.board.allLegalDeplacements(this.myColor)) {
+
             board.makeMovement(m);
             List<Couple> tmp = minValue(depth + 1);
             this.board.cancelMovement(m);

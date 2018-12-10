@@ -119,12 +119,12 @@ public class Link implements Runnable {
                 this.commands.add(command);
 
             }
-            System.out.println(command);
+            //System.out.println(command);
         }
     }
 
     public boolean isInputReady() {
-        return this.commands.size() != 0;
+        return (this.commands.size() != 0);
     }
 
     public String getNextInput() {
