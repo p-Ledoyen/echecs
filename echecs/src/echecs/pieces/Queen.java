@@ -1,6 +1,7 @@
 package echecs.pieces;
 
 import echecs.Color;
+import echecs.Constant;
 import echecs.Library;
 
 import java.util.HashMap;
@@ -9,12 +10,13 @@ public class Queen extends Piece {
 
     public Queen(int pow, Color color) {
         this.color = color;
-        this.value = 9;
+        this.value = Constant.QueenValue;
 
         this.position = Library.pow2(pow);
 
         this.movements = new HashMap<>();
         for (int i = 0; i < 64; i++) {
+            this.alive = true;
             long dep = 0;
             for (int j = i % 8; j < 64; j += 8)
                 if (j != i)
@@ -43,7 +45,7 @@ public class Queen extends Piece {
     }
 
     @Override
-    public long getThreatened(long occupiedCells) {
+    public long specializedThreatenedCells(long occupiedCells) {
         long res = 0;
         int i = Library.log2(this.position);
         while (i < 56) {
@@ -113,7 +115,7 @@ public class Queen extends Piece {
     }
 
     @Override
-    public long legalMovements(long myPieces, long adversePieces) {
+    public long specializedLegalMovements(long myPieces, long adversePieces) {
         long res = 0;
         int i = Library.log2(position);
         while (i < 56) {

@@ -11,6 +11,7 @@ public abstract class Piece implements Cloneable {
     protected HashMap<Long, Long> threatened;
     protected Color color;
     protected int value;
+    protected boolean alive;
 
     public Long getPosition() {
         return position;
@@ -32,9 +33,31 @@ public abstract class Piece implements Cloneable {
         return value;
     }
 
-    public abstract long getThreatened(long occupiedCells);
+    public boolean getAlive() {
+        return this.alive;
+    }
 
-    public abstract long legalMovements(long myPieces, long adversePieces);
+    public void setAlive(boolean alive) {
+        this.alive = alive;
+    }
+
+    public abstract long specializedThreatenedCells(long occupiedCells);
+
+    public abstract long specializedLegalMovements(long myPieces, long adversePieces);
+
+    public long threatenedCells(long occupiedCells) {
+        if (this.alive)
+            return this.specializedThreatenedCells(occupiedCells);
+        else
+            return 0;
+    }
+
+    public long legalMovements(long myPieces, long adversePieces) {
+        if (this.alive)
+            return this.specializedLegalMovements(myPieces, adversePieces);
+        else
+            return 0;
+    }
 
     public Piece copy() {
         try {

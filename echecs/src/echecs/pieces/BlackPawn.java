@@ -1,6 +1,7 @@
 package echecs.pieces;
 
 import echecs.Color;
+import echecs.Constant;
 import echecs.Library;
 
 import java.util.HashMap;
@@ -9,7 +10,8 @@ public class BlackPawn extends Piece {
 
     public BlackPawn(int pow, Color color) {
         this.color = color;
-        this.value = 1;
+        this.value = Constant.PawnValue;
+        this.alive = true;
 
         this.position = Library.pow2(pow);
 
@@ -38,12 +40,12 @@ public class BlackPawn extends Piece {
     }
 
     @Override
-    public long getThreatened(long occupiedCells) {
+    public long specializedThreatenedCells(long occupiedCells) {
         return this.threatened.get(this.position);
     }
 
     @Override
-    public long legalMovements(long myPieces, long adversePieces) {
+    public long specializedLegalMovements(long myPieces, long adversePieces) {
         return ((this.threatened.get(this.position) & adversePieces)
                 | (this.movements.get(this.position) & ~myPieces & ~adversePieces));
     }

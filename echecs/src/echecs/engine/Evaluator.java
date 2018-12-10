@@ -6,27 +6,17 @@ import echecs.pieces.Piece;
 
 public class Evaluator {
 
-    public static final int QueenValue = 9;
-    public static final int KnightValue = 3;
-    public static final int RookValue = 5;
-    public static final int BishopValue = 3;
-    public static final int PawnValue = 1;
-
     public Color color = Color.WHITE;
 
-    /**
-     * @param board
-     * @param factor 1 / -1
-     * @return
-     */
     public int evaluate(Board board) {
         int evaluation = 0;
         // Value of echecs.pieces
         for (Piece p : board.getPieces())
-            if (p.getColor() == color)
-                evaluation += p.getValue();
-            else
-                evaluation -= p.getValue();
+            if (p.getAlive())
+                if (p.getColor() == color)
+                    evaluation += p.getValue();
+                else
+                    evaluation -= p.getValue();
 
         // Bonus
         //      - freedom degree

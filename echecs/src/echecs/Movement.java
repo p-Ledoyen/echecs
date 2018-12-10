@@ -8,10 +8,10 @@ public class Movement {
     private long initialPosition;
     private long finalPosition;
 
-    public Movement(Piece piece, long initialPosition, long fianlPosition) {
+    public Movement(Piece piece, long initialPosition, long finalPosition) {
         this.piece = piece;
         this.initialPosition = initialPosition;
-        this.finalPosition = fianlPosition;
+        this.finalPosition = finalPosition;
     }
 
     public Piece getPiece() {
@@ -28,6 +28,6 @@ public class Movement {
 
     @Override
     public String toString() {
-        return Library.getCase(finalPosition);
+        return Library.getCase(initialPosition) + "" + Library.getCase(finalPosition);
     }
 }

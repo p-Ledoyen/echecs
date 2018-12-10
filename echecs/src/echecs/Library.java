@@ -47,7 +47,7 @@ public abstract class Library {
 
     public static String getCase(long l) {
         String[] letters = {"a", "b", "c", "d", "e", "f", "g", "h"};
-        int pow = (int) (Math.log(l) / Math.log(2));
+        int pow = Library.log2(l);
         int row = pow / 8 + 1;
         int column = pow % 8;
         return letters[column] + row;

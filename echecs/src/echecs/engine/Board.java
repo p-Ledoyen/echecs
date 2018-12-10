@@ -7,10 +7,12 @@ import echecs.pieces.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
 public class Board implements Cloneable {
 
     private List<Piece> pieces;
+    private Stack<Piece> piecesEaten;
 
     // true if the castling isn't possible anymore (rook movement or king movement)
     private boolean noMovementSmallCastling;
@@ -19,6 +21,7 @@ public class Board implements Cloneable {
     public Board() {
         this.noMovementBigCastling = true;
         this.noMovementSmallCastling = true;
+        this.piecesEaten = new Stack<>();
 
         // Initilization of the positions
         //      - black echecs.pieces
@@ -70,18 +73,19 @@ public class Board implements Cloneable {
     public long getOccupiedCells() {
         long res = 0;
         for (Piece p : this.pieces)
-            res |= p.getPosition();
+            if (p.getAlive())
+                res |= p.getPosition();
         return res;
     }
 
     public long attack(Piece piece) {
-        return piece.getThreatened(this.getOccupiedCells());
+        return piece.threatenedCells(this.getOccupiedCells());
     }
 
     public long getThreatenedCells(Color color) {
         long res = 0;
         for (Piece p : this.pieces)
-            if (p.getColor() == color)
+            if (p.getColor() == color && p.getAlive())
                 res |= this.attack(p);
         return res;
     }
@@ -130,9 +134,9 @@ public class Board implements Cloneable {
 
         Color color = piece.getColor();
         for (Piece p : this.pieces)
-            if (p.getColor() == color)
+            if (p.getColor() == color && p.getAlive())
                 myPieces |= p.getPosition();
-            else
+            else if (p.getColor() != color && p.getAlive())
                 adversePieces |= p.getPosition();
 
         return piece.legalMovements(myPieces, adversePieces);
@@ -141,7 +145,7 @@ public class Board implements Cloneable {
     public List<Movement> allLegalDeplacements(Color color) {
         List<Movement> res = new ArrayList<>();
         for (Piece p : this.pieces)
-            if (color == p.getColor()) {
+            if (color == p.getColor() && p.getAlive()) {
                 List<Long> finalPositions = Library.extract(this.legalDeplacements(p));
                 for (long l : finalPositions) {
                     res.add(new Movement(p, p.getPosition(), l));
@@ -152,10 +156,24 @@ public class Board implements Cloneable {
     }
 
     public void makeMovement(Movement movement) {
+        boolean eaten = false;
+        for (Piece p : this.pieces)
+            if (p.getPosition() == movement.getFinalPosition() && p.getAlive() && p != movement.getPiece()) {
+                p.setAlive(false);
+                this.piecesEaten.add(p);
+                eaten = true;
+                break;
+            }
+        if (!eaten)
+            this.piecesEaten.push(null);
         movement.getPiece().setPosition(movement.getFinalPosition());
+
     }
 
     public void cancelMovement(Movement movement) {
+        Piece p = piecesEaten.pop();
+        if (p != null)
+            p.setAlive(true);
         movement.getPiece().setPosition(movement.getInitialPosition());
     }
 

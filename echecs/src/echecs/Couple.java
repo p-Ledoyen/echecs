@@ -16,4 +16,9 @@ public class Couple {
     public int getSecond() {
         return second;
     }
+
+    @Override
+    public String toString() {
+        return this.first + "  " + this.getSecond();
+    }
 }

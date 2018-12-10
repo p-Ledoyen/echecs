@@ -1,6 +1,7 @@
 package echecs.pieces;
 
 import echecs.Color;
+import echecs.Constant;
 import echecs.Library;
 
 import java.util.HashMap;
@@ -9,7 +10,8 @@ public class Knight extends Piece {
 
     public Knight(int pow, Color color) {
         this.color = color;
-        this.value = 3;
+        this.value = Constant.KnightValue;
+        this.alive = true;
 
         this.position = Library.pow2(pow);
 
@@ -48,12 +50,12 @@ public class Knight extends Piece {
     }
 
     @Override
-    public long getThreatened(long occupiedCells) {
+    public long specializedThreatenedCells(long occupiedCells) {
         return this.movements.get(this.position);
     }
 
     @Override
-    public long legalMovements(long myPieces, long adversePieces) {
+    public long specializedLegalMovements(long myPieces, long adversePieces) {
         return this.movements.get(this.position) & ~myPieces;
     }
 }

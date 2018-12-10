@@ -1,6 +1,7 @@
 package echecs.pieces;
 
 import echecs.Color;
+import echecs.Constant;
 import echecs.Library;
 
 import java.util.HashMap;
@@ -9,7 +10,8 @@ public class Bishop extends Piece {
 
     public Bishop(int pow, Color color) {
         this.color = color;
-        this.value = 3;
+        this.value = Constant.BishopValue;
+        this.alive = true;
 
         this.position = Library.pow2(pow);
 
@@ -37,7 +39,7 @@ public class Bishop extends Piece {
     }
 
     @Override
-    public long getThreatened(long occupiedCells) {
+    public long specializedThreatenedCells(long occupiedCells) {
         long res = 0;
         int i = Library.log2(this.position);
         while (i > 8 && i % 8 != 0) {
@@ -75,7 +77,7 @@ public class Bishop extends Piece {
     }
 
     @Override
-    public long legalMovements(long myPieces, long adversePieces) {
+    public long specializedLegalMovements(long myPieces, long adversePieces) {
         long res = 0;
         int i = Library.log2(position);
         while (i > 8 && i % 8 != 0) {

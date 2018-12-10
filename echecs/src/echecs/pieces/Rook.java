@@ -1,6 +1,7 @@
 package echecs.pieces;
 
 import echecs.Color;
+import echecs.Constant;
 import echecs.Library;
 
 import java.util.HashMap;
@@ -9,7 +10,8 @@ public class Rook extends Piece {
 
     public Rook(int pow, Color color) {
         this.color = color;
-        this.value = 5;
+        this.value = Constant.RookValue;
+        this.alive = true;
 
         this.position = Library.pow2(pow);
 
@@ -28,7 +30,7 @@ public class Rook extends Piece {
     }
 
     @Override
-    public long getThreatened(long occupiedCells) {
+    public long specializedThreatenedCells(long occupiedCells) {
         long res = 0;
         int i = Library.log2(this.position);
         while (i < 56) {
@@ -66,7 +68,7 @@ public class Rook extends Piece {
     }
 
     @Override
-    public long legalMovements(long myPieces, long adversePieces) {
+    public long specializedLegalMovements(long myPieces, long adversePieces) {
         long res = 0;
         int i = Library.log2(position);
         while (i < 56) {
