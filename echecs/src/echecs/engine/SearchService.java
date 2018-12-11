@@ -4,9 +4,6 @@ import echecs.Color;
 import echecs.Couple;
 import echecs.Movement;
 
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedDeque;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,20 +13,13 @@ public class SearchService {
     private int maxDepth;
     private Board board;
     private Color myColor;
-    private Queue<Movement> tree;
     private List<Couple> prevision;
-
-    private int alpha;
-    private int beta;
 
     public SearchService(Evaluator evaluator, int maxDepth, Color myColor, Board board) {
         this.evaluator = evaluator;
         this.maxDepth = maxDepth;
         this.myColor = myColor;
         this.board = board;
-        this.tree = new ConcurrentLinkedDeque<>();
-        this.alpha = -100000;
-        this.beta = 100000;
     }
 
     public void setMyColor(Color myColor) {
@@ -37,45 +27,15 @@ public class SearchService {
     }
 
     public String miniMaxDecision() {
-     /*   if (prevision != null) {
+        if (prevision != null) {
             prevision.remove(prevision.size() - 1);
             prevision.remove(prevision.size() - 1);
         }
-
-        int depth = 0;
-        List<Couple> res = new ArrayList<>();
-
-        // prevision to initialize alpha and beta
-        if (this.prevision != null) {
-            for (int i = this.prevision.size() - 1; i >= 0; i--) {
-                Movement m = prevision.get(i).getFirst();
-                if (m != null) {
-                    board.makeMovement(m);
-                    depth++;
-                }
-            }
-
-            if (depth%2==1)
-                res = minValue(depth);
-            else
-                res = maxValue(depth);
-
-            for (int i = 0; i < this.prevision.size(); i++) {
-                Movement m = prevision.get(i).getFirst();
-                if (m != null) {
-                    board.cancelMovement(m);
-                    res.add(new Couple(m, alpha));
-                }
-            }
-        }
-
-*/
-
-        this.prevision = maxValue(0);
-        return prevision.get(prevision.size()-1).getFirst().toString();
+        prevision = maxValue(0, -10000, 10000);
+        return prevision.get(this.prevision.size() - 1).getFirst().toString();
     }
 
-    private List<Couple> maxValue(int depth) {
+    private List<Couple> maxValue(int depth, int alpha, int beta) {
         if (depth == this.maxDepth) {
             List<Couple> res = new ArrayList<>();
             res.add(new Couple(null, this.evaluator.evaluate(this.board)));
@@ -84,13 +44,15 @@ public class SearchService {
         List<Couple> res = new ArrayList<>();
         res.add(new Couple(null, -10000));
 
-
-        // all movements
-
-        for (Movement m : this.board.allLegalDeplacements(this.myColor)) {
-
+        List<Movement> movements = new ArrayList<>();
+        if (depth == 0) {
+            if (prevision != null)
+                movements.add(prevision.get(prevision.size() - 1).getFirst());
+        }
+        movements.addAll(board.allLegalDeplacements(myColor));
+        for (Movement m : movements) {
             board.makeMovement(m);
-            List<Couple> tmp = minValue(depth + 1);
+            List<Couple> tmp = minValue(depth + 1, alpha, beta);
             this.board.cancelMovement(m);
             if (tmp.get(tmp.size() - 1).getSecond() > res.get(res.size() - 1).getSecond()) {
                 res = tmp;
@@ -103,7 +65,7 @@ public class SearchService {
         return res;
     }
 
-    private List<Couple> minValue(int depth) {
+    private List<Couple> minValue(int depth, int alpha, int beta) {
         if (depth == this.maxDepth) {
             List<Couple> res = new ArrayList<>();
             res.add(new Couple(null, this.evaluator.evaluate(this.board)));
@@ -111,10 +73,9 @@ public class SearchService {
         }
         List<Couple> res = new ArrayList<>();
         res.add(new Couple(null, 10000));
-        // for (State s : state.successors()) {
         for (Movement m : this.board.allLegalDeplacements(Color.other(myColor))) {
             this.board.makeMovement(m);
-            List<Couple> tmp = maxValue(depth + 1);
+            List<Couple> tmp = maxValue(depth + 1, alpha, beta);
             this.board.cancelMovement(m);
             if (tmp.get(tmp.size() - 1).getSecond() < res.get(res.size() - 1).getSecond()) {
                 res = tmp;
