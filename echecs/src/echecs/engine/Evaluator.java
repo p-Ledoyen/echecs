@@ -2,7 +2,13 @@ package echecs.engine;
 
 import echecs.Color;
 import echecs.Library;
+import echecs.pieces.BlackPawn;
 import echecs.pieces.Piece;
+import echecs.pieces.Rook;
+import echecs.pieces.WhitePawn;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class Evaluator {
 
@@ -55,68 +61,42 @@ public class Evaluator {
 
 
         // rooks on the same column
-   /*     List<Long> blackRooks = echecs.Library.extract(board.getBlackRookPosition());
-        List<Long> whiteRooks = echecs.Library.extract(board.getWhiteRookPosition());
+        List<Integer> blackRooks = new ArrayList<>();
+        List<Integer> whiteRooks = new ArrayList<>();
+        for (Piece p : board.getPieces())
+            if (p instanceof Rook)
+                if (p.getColor() == color) {
+                    if (blackRooks.contains(Library.log2(p.getPosition()) % 8))
+                        // two rooks on the same column
+                        evaluation += 20;
+                    else
+                        blackRooks.add(Library.log2((p.getPosition()) % 8));
 
-        if (echecs.Library.log2(blackRooks.get(0)) % 8 == echecs.Library.log2(blackRooks.get(1)) % 8)
-            evaluation += 5;
+                } else {
+                    if (whiteRooks.contains(Library.log2(p.getPosition()) % 8))
+                        // two rooks on the same column
+                        evaluation -= 20;
+                    else
+                        whiteRooks.add((Library.log2(p.getPosition()) % 8));
+                }
 
-        if (echecs.Library.log2(whiteRooks.get(0)) % 8 == echecs.Library.log2(whiteRooks.get(1)) % 8)
-            evaluation -= 5;
 
         // pawn as close as possible than the adversial raw
-        for (long l : echecs.Library.extract(board.getBlackPawnPosition()))
-            evaluation += (6 - echecs.Library.log2(l) / 8);
-
-        for (long l : echecs.Library.extract(board.getWhitePawnPosition()))
-            evaluation -= (echecs.Library.log2(l) / 8 - 1);*/
-
-        // Malus
-        //      - Distance to castle
-    /*    int distanceToCastle = 0;
-        long occupiedCells = board.getOccupiedCells();
-        if (board.isCastlingPossible(0, Color.WHITE)) {
-            if ((occupiedCells & Library.pow2(5)) > 0)
-                distanceToCastle -= 1;
-            if ((occupiedCells & Library.pow2(6)) > 0)
-                distanceToCastle -= 1;
-        }
-        if (board.isCastlingPossible(1, Color.WHITE)) {
-            if ((occupiedCells & Library.pow2(1)) > 0)
-                distanceToCastle -= 1;
-            if ((occupiedCells & Library.pow2(2)) > 0)
-                distanceToCastle -= 1;
-            if ((occupiedCells & Library.pow2(3)) > 0)
-                distanceToCastle -= 1;
-        }
-
-        if (board.isCastlingPossible(0, Color.BLACK)) {
-            if ((occupiedCells & Library.pow2(61)) > 0)
-                distanceToCastle -= 1;
-            if ((occupiedCells & Library.pow2(62)) > 0)
-                distanceToCastle -= 1;
-        }
-        if (board.isCastlingPossible(1, Color.BLACK)) {
-            if ((occupiedCells & Library.pow2(57)) > 0)
-                distanceToCastle -= 1;
-            if ((occupiedCells & Library.pow2(58)) > 0)
-                distanceToCastle -= 1;
-            if ((occupiedCells & Library.pow2(59)) > 0)
-                distanceToCastle -= 1;
-        }
+        int pawnPosition = 0;
+        for (Piece p : board.getPieces())
+            if (p instanceof BlackPawn)
+                pawnPosition += (6 - Library.log2(p.getPosition()) / 8);
+            else if (p instanceof WhitePawn)
+                pawnPosition -= (Library.log2(p.getPosition()) / 8 - 1);
 
         if (color == Color.BLACK)
-            evaluation += distanceToCastle;
+            evaluation += pawnPosition;
         else
-            evaluation -= distanceToCastle;*/
+            evaluation -= pawnPosition;
 
-        // tropisme (roi protégé par une pièce elle même menacée
+        // Malus
+        // tropisme (roi protégé par une pièce elle même menacée)
 
-        // pions doublé ou triplés
-
-        // pions isolés
-
-        // pions meme ligne
 
         return evaluation;
     }
