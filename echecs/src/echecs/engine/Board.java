@@ -78,15 +78,23 @@ public class Board implements Cloneable {
         return res;
     }
 
-    public long attack(Piece piece) {
-        return piece.threatenedCells(this.getOccupiedCells());
+    public long piecesCells(Color color) {
+        long res = 0;
+        for (Piece p : this.pieces)
+            if (p.getAlive() && p.getColor() == color)
+                res |= p.getPosition();
+        return res;
+    }
+
+    public long attack(Piece piece, Color color) {
+        return piece.threatenedCells(this.piecesCells(color));
     }
 
     public long getThreatenedCells(Color color) {
         long res = 0;
         for (Piece p : this.pieces)
             if (p.getColor() == color && p.getAlive())
-                res |= this.attack(p);
+                res |= this.attack(p, color);
         return res;
     }
 
@@ -166,8 +174,11 @@ public class Board implements Cloneable {
             }
         if (!eaten)
             this.piecesEaten.push(null);
-        movement.getPiece().setPosition(movement.getFinalPosition());
 
+        for (Piece p : this.pieces)
+            if (p.getPosition() == movement.getInitialPosition() && p.getAlive()) {
+                p.setPosition(movement.getFinalPosition());
+            }
     }
 
     public void cancelMovement(Movement movement) {
@@ -189,8 +200,25 @@ public class Board implements Cloneable {
         Board copy = new Board();
         copy.pieces.clear();
         for (Piece p : pieces) {
-            copy.pieces.add((Piece) p.copy());
+            copy.pieces.add(p.copy());
         }
         return copy;
+    }
+
+    @Override
+    public String toString() {
+        String res = "";
+        String chiffre = Long.toBinaryString(this.getOccupiedCells());
+        String binaire = chiffre;
+        for (int i = 0; i < 64 - chiffre.length(); i++)
+            binaire = "0" + binaire;
+
+        for (int i = 0; i < 64; i += 8) {
+            String ligne = binaire.substring(i, i + 8);
+            for (int j = 7; j >= 0; j--)
+                res += ligne.charAt(j);
+            res += "\n";
+        }
+        return res;
     }
 }
