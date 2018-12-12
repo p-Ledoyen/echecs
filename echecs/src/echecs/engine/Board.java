@@ -128,12 +128,14 @@ public class Board implements Cloneable {
         // get te adverse king position
         long kingAdversePosition = -1;
         for (Piece p : this.pieces)
-            if (p.getColor() == color && (p instanceof King))
+            if (p.getColor() == color && (p instanceof King)) {
                 kingAdversePosition = p.getPosition();
+                break;
+            }
         if (kingAdversePosition == -1)
             throw new RuntimeException("there is no adverse king");
 
-        return (this.getThreatenedCells(color) & kingAdversePosition) > 0;
+        return (this.getThreatenedCells(Color.other(color)) & kingAdversePosition) > 0;
     }
 
     public long legalDeplacements(Piece piece) {
@@ -156,7 +158,7 @@ public class Board implements Cloneable {
             if (color == p.getColor() && p.getAlive()) {
                 List<Long> finalPositions = Library.extract(this.legalDeplacements(p));
                 for (long l : finalPositions) {
-                    res.add(new Movement(p, p.getPosition(), l));
+                    res.add(new Movement(p.getPosition(), l));
                 }
             }
 
@@ -166,7 +168,7 @@ public class Board implements Cloneable {
     public void makeMovement(Movement movement) {
         boolean eaten = false;
         for (Piece p : this.pieces)
-            if (p.getPosition() == movement.getFinalPosition() && p.getAlive() && p != movement.getPiece()) {
+            if (p.getPosition() == movement.getFinalPosition() && p.getAlive()) {
                 p.setAlive(false);
                 this.piecesEaten.add(p);
                 eaten = true;
@@ -178,14 +180,21 @@ public class Board implements Cloneable {
         for (Piece p : this.pieces)
             if (p.getPosition() == movement.getInitialPosition() && p.getAlive()) {
                 p.setPosition(movement.getFinalPosition());
+                break;
             }
     }
 
     public void cancelMovement(Movement movement) {
+        for (Piece p1 : this.pieces)
+            if (p1.getPosition() == movement.getFinalPosition() && p1.getAlive()) {
+                p1.setPosition(movement.getInitialPosition());
+                break;
+            }
+
         Piece p = piecesEaten.pop();
         if (p != null)
             p.setAlive(true);
-        movement.getPiece().setPosition(movement.getInitialPosition());
+
     }
 
     public int numberPieces(long l) {
