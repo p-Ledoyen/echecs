@@ -46,7 +46,12 @@ public class WhitePawn extends Piece {
 
     @Override
     public long specializedLegalMovements(long myPieces, long adversePieces) {
-        return ((this.threatened.get(this.position) & adversePieces)
-                | (this.movements.get(this.position) & ~myPieces & ~adversePieces));
+        long res = 0;
+        res |= this.threatened.get(this.position) & adversePieces;
+        if (Library.log2(this.position) / 8 == 1 && (this.position + 16 & ~myPieces & ~adversePieces) == 0 && (this.position + 8 & ~myPieces & ~adversePieces) == 0)
+            res |= this.position + 16;
+        if ((this.position + 8 & ~myPieces & ~adversePieces) == 0)
+            res |= this.position + 8;
+        return res;
     }
 }
