@@ -28,14 +28,15 @@ public class SearchService {
         this.myColor = myColor;
     }
 
-    public List<Couple> miniMaxDecision() {
+    public String miniMaxDecision() {
         if (prevision != null) {
             prevision.remove(prevision.size() - 1);
             prevision.remove(prevision.size() - 1);
         }
         prevision = init();
         //  prevision = maxValue(board, 0, -10000, 10000);
-        return prevision;
+        //return prevision;
+        return prevision.get(prevision.size()-1).getFirst().toString();
     }
 
     private List<Couple> init() {

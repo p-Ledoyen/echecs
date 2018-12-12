@@ -14,6 +14,10 @@ public class Evaluator {
 
     public Color color = Color.WHITE;
 
+    public void setColor(Color color) {
+        this.color = color;
+    }
+
     public int evaluate(Board board) {
         int evaluation = 0;
         // Value of echecs.pieces

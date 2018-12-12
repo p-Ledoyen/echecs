@@ -110,6 +110,11 @@ public class Link implements Runnable {
                         }
                         break;
 
+                    case "position":
+                        command = next;
+                        while(iterator.hasNext())
+                            command += " "+ iterator.next();
+                        break;
                     default:
                 }
                 if (command != null) break;
@@ -117,9 +122,7 @@ public class Link implements Runnable {
 
             if (command != null) {
                 this.commands.add(command);
-
             }
-            //System.out.println(command);
         }
     }
 

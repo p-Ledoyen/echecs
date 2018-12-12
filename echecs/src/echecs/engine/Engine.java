@@ -3,6 +3,7 @@ package echecs.engine;
 
 import echecs.Color;
 import echecs.Constant;
+import echecs.Movement;
 
 public class Engine {
 
@@ -59,6 +60,7 @@ public class Engine {
 
         String[] command = input.split(" ");
 
+        System.out.println("info string Arena dit : "+input);
         switch(command[0]){
             case "uci":
                 System.out.println("id author Aurélie et Paul");
@@ -80,14 +82,30 @@ public class Engine {
                 break;
 
             case "ucinewgame":
+                this.board = new Board();
                 break;
 
             case "position":
+                if (command.length == 2) {
+                        System.out.println("info string Echecs dit : ma couleur est BLANC");
+                        searchService.setMyColor(Color.WHITE);
+                        evaluator.setColor(Color.WHITE);
+                }
+                else if (command.length == 4) {
+                        System.out.println("info string Echecs dit : ma couleur est NOIR");
+                        searchService.setMyColor(Color.BLACK);
+                        evaluator.setColor(Color.BLACK);
+                }
+                if(command[command.length-1].matches("([a-h][1-8]){2}"))
+                    board.makeMovement(new Movement(command[command.length-1]));
                 break;
 
             case "go":
                 //Quels que soient les paramètres, on autorise seulement 2sec de recherche.
                 String bestmove=this.searchService.miniMaxDecision();
+                System.out.println("info string Echecs dit :  "+bestmove);
+                System.out.println("info string"+board.toString());
+                board.makeMovement(new Movement(bestmove));
                 System.out.println("bestmove "+bestmove);
                 break;
 

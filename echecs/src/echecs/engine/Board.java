@@ -226,7 +226,8 @@ public class Board implements Cloneable {
             String ligne = binaire.substring(i, i + 8);
             for (int j = 7; j >= 0; j--)
                 res += ligne.charAt(j);
-            res += "\n";
+            //res += "\n";
+            res += " ";
         }
         return res;
     }
