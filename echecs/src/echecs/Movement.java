@@ -1,21 +1,18 @@
 package echecs;
 
-import echecs.pieces.Piece;
-
 public class Movement {
 
-    private Piece piece;
     private long initialPosition;
     private long finalPosition;
 
-    public Movement(Piece piece, long initialPosition, long finalPosition) {
-        this.piece = piece;
+    public Movement(long initialPosition, long finalPosition) {
         this.initialPosition = initialPosition;
         this.finalPosition = finalPosition;
     }
 
-    public Piece getPiece() {
-        return piece;
+    public Movement(String movement) {
+        this.initialPosition = Library.getCase(movement.charAt(0), movement.charAt(1));
+        this.finalPosition = Library.getCase(movement.charAt(2), movement.charAt(3));
     }
 
     public long getInitialPosition() {

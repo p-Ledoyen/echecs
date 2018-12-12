@@ -52,4 +52,37 @@ public abstract class Library {
         int column = pow % 8;
         return letters[column] + row;
     }
+
+    public static long getCase(char letter, char row) {
+        int column = 0;
+        switch (letter) {
+            case 'a':
+                column = 0;
+                break;
+            case 'b':
+                column = 1;
+                break;
+            case 'c':
+                column = 2;
+                break;
+            case 'd':
+                column = 3;
+                break;
+            case 'e':
+                column = 4;
+                break;
+            case 'f':
+                column = 5;
+                break;
+            case 'g':
+                column = 6;
+                break;
+            case 'h':
+                column = 7;
+                break;
+            default:
+                throw new IllegalArgumentException();
+        }
+        return pow2((Integer.parseInt("" + row) - 1) * 8 + column);
+    }
 }
