@@ -124,8 +124,6 @@ public class Board implements Cloneable {
     }
 
     public boolean isMate(Color color) {
-        boolean res = false;
-        // get te adverse king position
         long kingAdversePosition = -1;
         for (Piece p : this.pieces)
             if (p.getColor() == color && (p instanceof King)) {

@@ -33,13 +33,14 @@ public class SearchService {
             prevision.remove(prevision.size() - 1);
             prevision.remove(prevision.size() - 1);
         }
-        prevision = init();
+        //X  System.out.println("info string : " + prevision.get(prevision.size()-1).getFirst());
+        prevision = threadCreation();
         //  prevision = maxValue(board, 0, -10000, 10000);
         //return prevision;
-        return prevision.get(prevision.size()-1).getFirst().toString();
+        return prevision.get(prevision.size() - 1).getFirst().toString();
     }
 
-    private List<Couple> init() {
+    private List<Couple> threadCreation() {
         List<Couple> res1 = new ArrayList<>();
         List<Couple> res2 = new ArrayList<>();
         List<Couple> res3 = new ArrayList<>();
@@ -50,25 +51,30 @@ public class SearchService {
         Board b3 = board.copy();
         Board b4 = board.copy();
 
-        int length = board.allLegalDeplacements(myColor).size();
-        List<Movement> m1 = new ArrayList<>();
+        List<Movement> legalMovements = board.allLegalDeplacements(myColor);
+        int length = legalMovements.size();
+        Movement nextMovement = null;
         if (prevision != null)
-            m1.add(prevision.get(prevision.size() - 1).getFirst());
+            nextMovement = prevision.get(prevision.size() - 1).getFirst();
+
+        List<Movement> m1 = new ArrayList<>();
+        if (prevision != null && legalMovements.contains(nextMovement))
+            m1.add(nextMovement);
         m1.addAll(b1.allLegalDeplacements(myColor).subList(0, length / 4));
 
         List<Movement> m2 = new ArrayList<>();
-        if (prevision != null)
-            m2.add(prevision.get(prevision.size() - 1).getFirst());
+        if (prevision != null && legalMovements.contains(nextMovement))
+            m2.add(nextMovement);
         m2.addAll(b2.allLegalDeplacements(myColor).subList(length / 4, 2 * length / 4));
 
         List<Movement> m3 = new ArrayList<>();
-        if (prevision != null)
-            m3.add(prevision.get(prevision.size() - 1).getFirst());
+        if (prevision != null && legalMovements.contains(nextMovement))
+            m3.add(nextMovement);
         m3.addAll(b3.allLegalDeplacements(myColor).subList(2 * length / 4, 3 * length / 4));
 
         List<Movement> m4 = new ArrayList<>();
-        if (prevision != null)
-            m4.add(prevision.get(prevision.size() - 1).getFirst());
+        if (prevision != null && legalMovements.contains(nextMovement))
+            m4.add(nextMovement);
         m4.addAll(b4.allLegalDeplacements(myColor).subList(3 * length / 4, length));
 
         MaxThread thread1 = new MaxThread(b1, m1);
@@ -112,7 +118,7 @@ public class SearchService {
 
     }
 
-    private List<Couple> maxValue(Board board, int depth, int alpha, int beta) {
+    private List<Couple> maxValue(Board board, int depth, int alpha, int beta, Movement bestMoveFinded) {
         if (depth == this.maxDepth) {
             List<Couple> res = new ArrayList<>();
             res.add(new Couple(null, this.evaluator.evaluate(board)));
@@ -121,10 +127,18 @@ public class SearchService {
 
         List<Couple> res = new ArrayList<>();
         res.add(new Couple(null, -10000));
-        for (Movement m : board.allLegalDeplacements(myColor)) {
+        List<Movement> movements = board.allLegalDeplacements(Color.other(myColor));
+        if (bestMoveFinded != null)
+            for (Movement m : movements)
+                if (m.toString().equals(bestMoveFinded.toString())) {
+                    movements.remove(m);
+                    movements.add(0, bestMoveFinded);
+                    break;
+                }
+        for (Movement m : movements) {
             board.makeMovement(m);
             if (!board.isMate(Color.other(myColor))) {
-                List<Couple> tmp = minValue(board, depth + 1, alpha, beta);
+                List<Couple> tmp = minValue(board, depth + 1, alpha, beta, res.size() == 1 ? null : res.get(res.size() - 2).getFirst());
                 board.cancelMovement(m);
 
                 if (tmp.get(tmp.size() - 1).getSecond() > res.get(res.size() - 1).getSecond()) {
@@ -142,7 +156,7 @@ public class SearchService {
 
     }
 
-    private List<Couple> minValue(Board board, int depth, int alpha, int beta) {
+    private List<Couple> minValue(Board board, int depth, int alpha, int beta, Movement bestMoveFinded) {
         if (depth == this.maxDepth) {
             List<Couple> res = new ArrayList<>();
             res.add(new Couple(null, this.evaluator.evaluate(board)));
@@ -150,10 +164,18 @@ public class SearchService {
         }
         List<Couple> res = new ArrayList<>();
         res.add(new Couple(null, 10000));
-        for (Movement m : board.allLegalDeplacements(Color.other(myColor))) {
+        List<Movement> movements = board.allLegalDeplacements(Color.other(myColor));
+        if (bestMoveFinded != null)
+            for (Movement m : movements)
+                if (m.toString().equals(bestMoveFinded.toString())) {
+                    movements.remove(m);
+                    movements.add(0, bestMoveFinded);
+                    break;
+                }
+        for (Movement m : movements) {
             board.makeMovement(m);
             if (!board.isMate(myColor)) {
-                List<Couple> tmp = maxValue(board, depth + 1, alpha, beta);
+                List<Couple> tmp = maxValue(board, depth + 1, alpha, beta, res.size() == 1 ? null : res.get(res.size() - 2).getFirst());
                 board.cancelMovement(m);
 
                 if (tmp.get(tmp.size() - 1).getSecond() < res.get(res.size() - 1).getSecond()) {
@@ -191,7 +213,7 @@ public class SearchService {
                 board.makeMovement(m);
 
                 if (!board.isMate(myColor)) {
-                    List<Couple> tmp = minValue(board, 1, alpha, beta);
+                    List<Couple> tmp = minValue(board, 1, alpha, beta, res.size() == 1 ? null : res.get(res.size() - 2).getFirst());
                     this.board.cancelMovement(m);
 
                     if (tmp.get(tmp.size() - 1).getSecond() > res.get(res.size() - 1).getSecond()) {

@@ -20,7 +20,7 @@ public class Evaluator {
 
     public int evaluate(Board board) {
         int evaluation = 0;
-        // Value of echecs.pieces
+        // Value of pieces
         for (Piece p : board.getPieces())
             if (p.getAlive())
                 if (p.getColor() == color)
