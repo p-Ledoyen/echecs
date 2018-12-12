@@ -11,14 +11,20 @@ public class Engine {
     private Evaluator evaluator;
     private SearchService searchService;
     private Link input;
-    private Thread inputThread;
+    private TimeThread time;
+    private Thread inputThread, timeThread, searchThread;
+
 
     public Engine() {
         this.board = new Board();
         this.evaluator = new Evaluator();
-        this.searchService = new SearchService(evaluator, Constant.MAX_DEPTH, Color.WHITE,this.board);
+
         this.input = new Link();
         this.inputThread = new Thread(input);
+        this.time = new TimeThread();
+        this.timeThread = new Thread(time);
+        this.searchService = new SearchService(evaluator, Color.WHITE,this.board);
+        this.searchThread = new Thread(searchService);
     }
 
 
@@ -26,6 +32,7 @@ public class Engine {
         //Start input thread
 
         this.inputThread.start();
+        this.searchThread.start();
 
         while (processGuiMessages(50)){
 
@@ -82,7 +89,7 @@ public class Engine {
                 break;
 
             case "ucinewgame":
-                this.board = new Board();
+                this.board.clear();
                 break;
 
             case "position":
@@ -102,7 +109,20 @@ public class Engine {
 
             case "go":
                 //Quels que soient les paramètres, on autorise seulement 2sec de recherche.
-                String bestmove=this.searchService.miniMaxDecision();
+
+                System.out.println("info string Lancement de la recherche");
+
+                searchService.launchSearch();
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                System.out.println("info string Recherche terminée");
+
+
+
+                String bestmove=this.searchService.getBestMove();
                 System.out.println("info string Echecs dit :  "+bestmove);
                 System.out.println("info string"+board.toString());
                 board.makeMovement(new Movement(bestmove));
@@ -110,6 +130,7 @@ public class Engine {
                 break;
 
             case "stop":
+                System.out.println("info string STOOOOOOOOOP");
                 break;
 
             case "ponderhit":
@@ -120,5 +141,22 @@ public class Engine {
         }
 
 
+    }
+
+
+    class TimeThread implements Runnable {
+
+        @Override
+        public void run() {
+            System.out.println("info string Lancement de TimeThread");
+
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+
+        }
     }
 }

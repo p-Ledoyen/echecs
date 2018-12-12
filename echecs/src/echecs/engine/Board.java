@@ -19,6 +19,10 @@ public class Board implements Cloneable {
     private boolean noMovementBigCastling;
 
     public Board() {
+        clear();
+    }
+
+    public void clear() {
         this.noMovementBigCastling = true;
         this.noMovementSmallCastling = true;
         this.piecesEaten = new Stack<>();
