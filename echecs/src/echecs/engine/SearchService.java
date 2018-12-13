@@ -12,7 +12,7 @@ public class SearchService implements Runnable {
 
     private Evaluator evaluator;
     private int maxDepth;
-    private Board board;
+    private volatile Board board;
     private Color myColor;
     private List<EvaluationMovement> prevision;
     private List<Thread> runnables;
@@ -76,6 +76,7 @@ public class SearchService implements Runnable {
         for (int i = 0; i < Constant.THREADS_NB; i++) {
             //init boards
             boards.add(this.board.copy());
+            System.out.println("info string thread   " + board);
             //init movements
             List<Movement> m = new ArrayList<>();
             if (nextMovement != null && legalMovements.contains(nextMovement))

@@ -74,6 +74,7 @@ public class Engine {
      */
     private void process(String input) {
 
+        System.out.println("info string " + input);
         String[] command = input.split(" ");
 
         switch (command[0]) {
@@ -114,9 +115,11 @@ public class Engine {
                 if (command[command.length - 1].matches("([a-h][1-8]){2}")) {
                     if (command.length != 4 && !command[command.length - 1].equals(adverseBestMove)) {
                         searchThread.stop();
+                        searchThread = new Thread(searchService);
                         board.cancelMovement(new Movement(adverseBestMove));
                         board.makeMovement(new Movement(command[command.length - 1]));
-                        //System.out.println("info string " + board);
+                        System.out.println("info string" + board);
+                        System.out.println("info string loupe");
                     }
 
                 }
@@ -124,12 +127,11 @@ public class Engine {
 
             case "go":
                 //Quels que soient les paramètres, on autorise seulement 2sec de recherche.
-                if (!searchThread.isAlive()) {
-                    //System.out.println("info string thread search service mort, redémarrage, comme ça on voit où c'est, ok ???????!!!!!!!!!");
-                    searchThread = new Thread(searchService);
-                    //System.out.println("info string " + board);
+                try {
                     searchThread.start();
+                } catch (Exception e) {
                 }
+
                 try {
                     Thread.sleep(5000);
                 } catch (InterruptedException e) {
@@ -138,8 +140,8 @@ public class Engine {
 
                 String bestmove = this.searchService.getBestMove();
                 board.makeMovement(new Movement(bestmove));
+                System.out.println("info string  best move " + bestmove);
                 System.out.println("bestmove " + bestmove);
-                //System.out.println("info string  best move " + bestmove);
 
                 searchThread.stop();
 
