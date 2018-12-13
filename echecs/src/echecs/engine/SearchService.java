@@ -1,6 +1,9 @@
 package echecs.engine;
 
-import echecs.*;
+import echecs.Color;
+import echecs.Constant;
+import echecs.Couple;
+import echecs.Movement;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,17 +47,14 @@ public class SearchService implements Runnable {
 
     @Override
     public void run() {
-        while (true) {
-        }
-    }
-
-    public void launchSearch() {
-
         System.out.println("info string Lancement de SearchService");
         if (this.prevision != null) {
-            this.prevision.remove(this.prevision.size() - 1);
-            this.prevision.remove(this.prevision.size() - 1);
-            System.out.println("info string Prévision avant init : " + this.prevision.get(this.prevision.size() - 1).getFirst().toString());
+            if (this.prevision.size() > 1)
+                this.prevision.remove(this.prevision.size() - 1);
+            if (this.prevision.size() > 1)
+                this.prevision.remove(this.prevision.size() - 1);
+            if (this.prevision.size() > 1)
+                System.out.println("info string Prévision avant init : " + this.prevision.get(this.prevision.size() - 1).getFirst().toString());
         }
 
         threadCreation();
@@ -67,7 +67,7 @@ public class SearchService implements Runnable {
 
         int length = legalMovements.size();
         Movement nextMovement = null;
-        if (prevision != null)
+        if (prevision != null && this.prevision.size() > 1)
             nextMovement = prevision.get(prevision.size() - 1).getFirst();
 
 
@@ -78,9 +78,9 @@ public class SearchService implements Runnable {
             boards.add(this.board.copy());
             //init movements
             List<Movement> m = new ArrayList<>();
-            if (prevision != null && legalMovements.contains(nextMovement))
+            if (nextMovement != null && legalMovements.contains(nextMovement))
                 m.add(nextMovement);
-            m.addAll(boards.get(i).allLegalDeplacements(myColor).subList((i * length) / Constant.THREADS_NB, ((i + 1) * length) / Constant.THREADS_NB));
+            m.addAll(legalMovements.subList((i * length) / Constant.THREADS_NB, ((i + 1) * length) / Constant.THREADS_NB));
             movements.add(m);
             //init res
             res.add(new ArrayList<>());
@@ -91,7 +91,7 @@ public class SearchService implements Runnable {
 
         long time = System.currentTimeMillis();
         maxDepth = 1;
-        while (System.currentTimeMillis() - time < 2000) {
+        while (true) {
             System.out.println("info string " + maxDepth);
 
             for (MaxThread runnable : runnables)
@@ -112,7 +112,7 @@ public class SearchService implements Runnable {
                     best = res.get(i).get(res.get(i).size() - 1).getSecond();
                 }
             }
-            System.out.println("info string taille res : " + res.size() + " bestindex : " + bestIndex);
+            System.out.println("info string taille res : " + res.get(0).size() + " bestindex : " + bestIndex);
             prevision = res.get(bestIndex);
             maxDepth++;
         }

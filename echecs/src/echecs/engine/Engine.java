@@ -2,7 +2,6 @@ package echecs.engine;
 
 
 import echecs.Color;
-import echecs.Constant;
 import echecs.Movement;
 
 public class Engine {
@@ -32,7 +31,7 @@ public class Engine {
         //Start input thread
 
         this.inputThread.start();
-        this.searchThread.start();
+        //    this.searchThread.start();
 
         while (processGuiMessages(50)){
 
@@ -112,21 +111,24 @@ public class Engine {
 
                 System.out.println("info string Lancement de la recherche");
 
-                searchService.launchSearch();
+                searchThread = new Thread(searchService);
+                searchThread.start();
                 try {
                     Thread.sleep(2000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
+
+
                 System.out.println("info string Recherche terminée");
-
-
 
                 String bestmove=this.searchService.getBestMove();
                 System.out.println("info string Echecs dit :  "+bestmove);
                 System.out.println("info string"+board.toString());
                 board.makeMovement(new Movement(bestmove));
                 System.out.println("bestmove "+bestmove);
+
+                searchThread.stop();
                 break;
 
             case "stop":

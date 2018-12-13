@@ -47,11 +47,12 @@ public class BlackPawn extends Piece {
     @Override
     public long specializedLegalMovements(long myPieces, long adversePieces) {
         long res = 0;
+        int powPosition = Library.log2(this.position);
         res |= this.threatened.get(this.position) & adversePieces;
-        if (Library.log2(this.position) / 8 == 6 && (this.position - 16 & ~myPieces & ~adversePieces) == 0 && (this.position - 8 & ~myPieces & ~adversePieces) == 0)
-            res |= this.position - 16;
-        if ((this.position - 8 & ~myPieces & ~adversePieces) == 0)
-            res |= this.position - 8;
+        if (powPosition / 8 == 6 && (Library.pow2(powPosition - 16) & ~myPieces & ~adversePieces) != 0 && (Library.pow2(powPosition - 8) & ~myPieces & ~adversePieces) != 0)
+            res |= Library.pow2(powPosition - 16);
+        if ((Library.pow2(powPosition - 8) & ~myPieces & ~adversePieces) != 0)
+            res |= Library.pow2(powPosition - 8);
         return res;
     }
 }
