@@ -17,6 +17,7 @@ public class SearchService implements Runnable {
     private List<Couple> prevision;
     private List<MaxThread> runnables;
     private List<Thread> threads;
+    private String bestMove;
 
     public SearchService(Evaluator evaluator, Color myColor, Board board) {
         this.evaluator = evaluator;
@@ -39,10 +40,11 @@ public class SearchService implements Runnable {
     }
 
     public String getBestMove() {
-        String s = prevision.get(prevision.size() - 1).getFirst().toString();
 
-        System.out.println("info string contenu de prevision : " + s);
-        return prevision.get(prevision.size() - 1).getFirst().toString();
+        System.out.println("info string prevision pdt get : " + prevision);
+        System.out.println("info string best pdf get : " + bestMove);
+
+        return bestMove;
     }
 
     @Override
@@ -58,6 +60,7 @@ public class SearchService implements Runnable {
         }
 
         threadCreation();
+        System.out.println("info string prevision fin create : " + prevision);
     }
 
     private void threadCreation() {
@@ -91,7 +94,7 @@ public class SearchService implements Runnable {
 
         long time = System.currentTimeMillis();
         maxDepth = 1;
-        while (true) {
+        while (System.currentTimeMillis() - time < 2000) {
             System.out.println("info string " + maxDepth);
 
             for (MaxThread runnable : runnables)
@@ -112,8 +115,12 @@ public class SearchService implements Runnable {
                     best = res.get(i).get(res.get(i).size() - 1).getSecond();
                 }
             }
-            System.out.println("info string taille res : " + res.get(0).size() + " bestindex : " + bestIndex);
+            System.out.println("info string premier : " + movements.get(bestIndex).get(0));
+            System.out.println("info string taille res : " + res.get(0).size() + " bestindex : " + bestIndex + " score " + best);
             prevision = res.get(bestIndex);
+            bestMove = prevision.get(prevision.size() - 1).getFirst().toString();
+            System.out.println("info string prevision : " + prevision);
+            System.out.println("info string best : " + bestMove);
             maxDepth++;
         }
 
