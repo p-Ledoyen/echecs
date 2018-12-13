@@ -21,7 +21,6 @@ public class Link implements Runnable {
             String input = this.stdin.nextLine();
             List<String> tokens = new ArrayList<String>();
 
-            //
             for (String token : input.split("[ \t]+"))
                 tokens.add(token);
 

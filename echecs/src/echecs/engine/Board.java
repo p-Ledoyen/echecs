@@ -15,24 +15,18 @@ public class Board implements Cloneable {
     private Stack<Piece> piecesEaten;
     private Stack<Piece> promotion;
 
-    // true if the castling isn't possible anymore (rook movement or king movement)
-    private boolean noMovementSmallCastling;
-    private boolean noMovementBigCastling;
-
     public Board() {
-        clear();
+        initialization();
     }
 
-    public void clear() {
-        this.noMovementBigCastling = true;
-        this.noMovementSmallCastling = true;
+    public void initialization() {
         this.piecesEaten = new Stack<>();
         this.promotion = new Stack<>();
 
         // Initilization of the positions
-        //      - black echecs.pieces
+        //      - black pieces
         this.pieces = new ArrayList<>();
-       /* this.pieces.add(new King(60, Color.BLACK));
+        this.pieces.add(new King(60, Color.BLACK));
         this.pieces.add(new Queen(59, Color.BLACK));
         this.pieces.add(new Bishop(58, Color.BLACK));
         this.pieces.add(new Bishop(61, Color.BLACK));
@@ -49,7 +43,7 @@ public class Board implements Cloneable {
         this.pieces.add(new BlackPawn(54, Color.BLACK));
         this.pieces.add(new BlackPawn(55, Color.BLACK));
 
-        //      - white echecs.pieces
+        //      - white pieces
         this.pieces.add(new King(4, Color.WHITE));
         this.pieces.add(new Queen(3, Color.WHITE));
         this.pieces.add(new Bishop(5, Color.WHITE));
@@ -66,38 +60,29 @@ public class Board implements Cloneable {
         this.pieces.add(new WhitePawn(13, Color.WHITE));
         this.pieces.add(new WhitePawn(14, Color.WHITE));
         this.pieces.add(new WhitePawn(15, Color.WHITE));
-        */
-
-        this.pieces.add(new WhitePawn(54, Color.WHITE));
-
-        this.pieces.add(new BlackPawn(48, Color.BLACK));
-        this.pieces.add(new BlackPawn(49, Color.BLACK));
-        this.pieces.add(new BlackPawn(50, Color.BLACK));
-        this.pieces.add(new BlackPawn(53, Color.BLACK));
-        this.pieces.add(new Bishop(35, Color.BLACK));
-        this.pieces.add(new Rook(44, Color.BLACK));
-        this.pieces.add(new King(51, Color.BLACK));
-
-
-        this.pieces.add(new King(29, Color.WHITE));
-        this.pieces.add(new WhitePawn(9, Color.WHITE));
-        this.pieces.add(new WhitePawn(13, Color.WHITE));
-        this.pieces.add(new WhitePawn(14, Color.WHITE));
-        this.pieces.add(new WhitePawn(24, Color.WHITE));
-        this.pieces.add(new WhitePawn(31, Color.WHITE));
-        this.pieces.add(new Knight(21, Color.WHITE));
-        this.pieces.add(new Rook(0, Color.WHITE));
-        this.pieces.add(new Rook(7, Color.WHITE));
     }
 
-    /////////////////////////
-    // GETTERS AND SETTERS //
-    /////////////////////////
+    ////////////
+    // Pieces //
+    ////////////
 
+    /**
+     * Get the list of all pieces.
+     *
+     * @return The list of pieces
+     */
     public List<Piece> getPieces() {
         return pieces;
     }
 
+    ///////////
+    // CELLS //
+    ///////////
+
+    /**
+     * Get the cells occupied by a piece.
+     * @return The cells on a bitboard of all cells occupied.
+     */
     public long getOccupiedCells() {
         long res = 0;
         for (Piece p : this.pieces)
@@ -106,6 +91,11 @@ public class Board implements Cloneable {
         return res;
     }
 
+    /**
+     * Get the cells occupied by pieces if a certain color.
+     * @param color The color we search the pieces
+     * @return All the cells (in a bitboard) occupied by a piece of the color 'color'
+     */
     public long piecesCells(Color color) {
         long res = 0;
         for (Piece p : this.pieces)
@@ -114,43 +104,38 @@ public class Board implements Cloneable {
         return res;
     }
 
-    public long attack(Piece piece, Color color) {
-        return piece.threatenedCells(this.piecesCells(color));
+    /**
+     * Get the cells threatened by a piece.
+     *
+     * @param piece The piece we are looking for cells it can attack
+     * @return The cells threatened by the piece (on a bitboard)
+     */
+    public long attack(Piece piece) {
+        return piece.threatenedCells(this.piecesCells(piece.getColor()));
     }
 
+    /**
+     * Get all the cells threatened by a certain color.
+     * @param color The color of the player
+     * @return All cells threaten by a piece of the player 'color' (on a bitboard)
+     */
     public long getThreatenedCells(Color color) {
         long res = 0;
         for (Piece p : this.pieces)
             if (p.getColor() == color && p.getAlive())
-                res |= this.attack(p, color);
+                res |= this.attack(p);
         return res;
     }
 
+    //////////
+    // MATE //
+    //////////
+
     /**
-     * @param type 0 for the "small castling" and 1 for the "big castling"
-     * @return
+     * Check if the kink of a color is mate.
+     * @param color The color of the king
+     * @return True if the king is in danger
      */
-    public boolean isCastlingPossible(int type, Color color) {
-        long occupiedCells = this.getOccupiedCells();
-
-        boolean noPieces = false;
-        if (color == Color.WHITE && type == 0)
-            noPieces = (occupiedCells & 32 & 64) == 0;
-        else if (color == Color.WHITE && type == 1)
-            noPieces = (occupiedCells & 2 & 4 & 8) == 0;
-        else if (color == Color.BLACK && type == 0)
-            noPieces = (occupiedCells & Library.pow2(57) & Library.pow2(58)) == 0;
-        else if (color == Color.BLACK && type == 1)
-            noPieces = (occupiedCells & Library.pow2(60) & Library.pow2(61) & Library.pow2(62)) == 0;
-
-        if (type == 0)
-            return noMovementSmallCastling & noPieces;
-        else if (type == 1)
-            return noMovementBigCastling & noPieces;
-        else
-            throw new IllegalArgumentException();
-    }
-
     public boolean isMate(Color color) {
         long kingAdversePosition = -1;
         for (Piece p : this.pieces)
@@ -164,7 +149,17 @@ public class Board implements Cloneable {
         return (this.getThreatenedCells(Color.other(color)) & kingAdversePosition) > 0;
     }
 
-    public long legalDeplacements(Piece piece) {
+    ///////////////
+    // MOVEMENTS //
+    ///////////////
+
+    /**
+     * All legal movements of a piece.
+     *
+     * @param piece The piece we are looking for movements.
+     * @return All movements that 'piece' can make
+     */
+    public long legalMovements(Piece piece) {
         long myPieces = 0;
         long adversePieces = 0;
 
@@ -178,21 +173,29 @@ public class Board implements Cloneable {
         return piece.legalMovements(myPieces, adversePieces);
     }
 
+    /**
+     * All movements a player can make.
+     * @param color The color of the player
+     * @return All movements which can be played by the player 'color'
+     */
     public List<Movement> allLegalDeplacements(Color color) {
         List<Movement> res = new ArrayList<>();
         for (int i = 0; i < pieces.size(); i++) {
             Piece p = pieces.get(i);
             if (color == p.getColor() && p.getAlive()) {
-                List<Long> finalPositions = Library.extract(this.legalDeplacements(p));
+                List<Long> finalPositions = Library.extract(this.legalMovements(p));
                 for (long l : finalPositions) {
                     res.add(new Movement(p.getPosition(), l));
                 }
             }
         }
-
         return res;
     }
 
+    /**
+     * Make a movment on the board.
+     * @param movement The movement to make
+     */
     public void makeMovement(Movement movement) {
         boolean eaten = false;
         for (Piece p : this.pieces)
@@ -228,6 +231,10 @@ public class Board implements Cloneable {
 
     }
 
+    /**
+     * Cancel a movement.
+     * @param movement The movment to cancel
+     */
     public void cancelMovement(Movement movement) {
         Piece p = this.promotion.pop();
 
@@ -252,14 +259,20 @@ public class Board implements Cloneable {
 
     }
 
-    public int numberPieces(long l) {
-        return Long.toBinaryString(l).replace("0", "").length();
+    /**
+     * Get number of 1 on a bitboard.
+     *
+     * @param bitboard The bitboard.
+     * @return
+     */
+    public int number(long bitboard) {
+        return Long.toBinaryString(bitboard).replace("0", "").length();
     }
 
-    public void afficher() {
-        Library.afficherLong(this.getOccupiedCells());
-    }
-
+    /**
+     * Copy a board (to give to differents threads).
+     * @return A new board with the same dipositions of pieces than 'this'
+     */
     public Board copy() {
         Board copy = new Board();
         copy.pieces.clear();

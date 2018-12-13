@@ -10,8 +10,8 @@ public class Engine {
     private Evaluator evaluator;
     private SearchService searchService;
     private Link input;
-    private TimeThread time;
-    private Thread inputThread, timeThread, searchThread;
+    private Thread inputThread;
+    private Thread searchThread;
 
 
     public Engine() {
@@ -20,13 +20,13 @@ public class Engine {
 
         this.input = new Link();
         this.inputThread = new Thread(input);
-        this.time = new TimeThread();
-        this.timeThread = new Thread(time);
         this.searchService = new SearchService(evaluator, Color.WHITE,this.board);
         this.searchThread = new Thread(searchService);
     }
 
-
+    /**
+     * Start the engine.
+     */
     public void run() {
         //Start input thread
 
@@ -41,7 +41,12 @@ public class Engine {
 
     }
 
-
+    /**
+     * Wait the next message and process it.
+     *
+     * @param wait The time maximum to wait the next message.
+     * @return True a message is read different to 'quit'
+     */
     private boolean processGuiMessages(int wait){
         if (this.input.isInputReady()){
             String input = this.input.getNextInput();
@@ -62,11 +67,14 @@ public class Engine {
         return true;
     }
 
+    /**
+     * Process a message receive by arena and answer to it
+     * @param input The message received
+     */
     private void process(String input) {
 
         String[] command = input.split(" ");
 
-        System.out.println("info string Arena dit : "+input);
         switch(command[0]){
             case "uci":
                 System.out.println("id author Aurélie et Paul");
@@ -88,19 +96,18 @@ public class Engine {
                 break;
 
             case "ucinewgame":
-                this.board.clear();
+                this.board.initialization();
                 break;
 
             case "position":
                 if (command.length == 2) {
-                        System.out.println("info string Echecs dit : ma couleur est BLANC");
-                        searchService.setMyColor(Color.WHITE);
-                        evaluator.setColor(Color.WHITE);
-                }
-                else if (command.length == 4) {
-                        System.out.println("info string Echecs dit : ma couleur est NOIR");
-                        searchService.setMyColor(Color.BLACK);
-                        evaluator.setColor(Color.BLACK);
+                    System.out.println("info string Echecs dit : ma couleur est BLANC");
+                    searchService.setMyColor(Color.WHITE);
+                    evaluator.setColor(Color.WHITE);
+                } else if (command.length == 4) {
+                    System.out.println("info string Echecs dit : ma couleur est NOIR");
+                    searchService.setMyColor(Color.BLACK);
+                    evaluator.setColor(Color.BLACK);
                 }
                 if(command[command.length-1].matches("([a-h][1-8]){2}"))
                     board.makeMovement(new Movement(command[command.length-1]));
@@ -108,9 +115,6 @@ public class Engine {
 
             case "go":
                 //Quels que soient les paramètres, on autorise seulement 2sec de recherche.
-
-                System.out.println("info string Lancement de la recherche");
-
                 searchThread = new Thread(searchService);
                 searchThread.start();
                 try {
@@ -119,12 +123,7 @@ public class Engine {
                     e.printStackTrace();
                 }
 
-
-                System.out.println("info string Recherche terminée");
-
                 String bestmove=this.searchService.getBestMove();
-                System.out.println("info string Echecs dit :  "+bestmove);
-                System.out.println("info string"+board.toString());
                 board.makeMovement(new Movement(bestmove));
                 System.out.println("bestmove "+bestmove);
 
@@ -132,7 +131,6 @@ public class Engine {
                 break;
 
             case "stop":
-                System.out.println("info string STOOOOOOOOOP");
                 break;
 
             case "ponderhit":
@@ -143,22 +141,5 @@ public class Engine {
         }
 
 
-    }
-
-
-    class TimeThread implements Runnable {
-
-        @Override
-        public void run() {
-            System.out.println("info string Lancement de TimeThread");
-
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-
-        }
     }
 }

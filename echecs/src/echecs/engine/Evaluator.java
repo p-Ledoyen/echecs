@@ -18,6 +18,12 @@ public class Evaluator {
         this.color = color;
     }
 
+    /**
+     * Evaluate a board.
+     *
+     * @param board The board to evaluate
+     * @return The evaluation of the board
+     */
     public int evaluate(Board board) {
         int evaluation = 0;
         // Value of pieces
@@ -32,9 +38,9 @@ public class Evaluator {
         //      - freedom degree
         for (Piece p : board.getPieces())
             if (p.getColor() == color)
-                evaluation += board.numberPieces(board.legalDeplacements(p));
+                evaluation += board.number(board.legalMovements(p));
             else
-                evaluation -= board.numberPieces(board.legalDeplacements(p));
+                evaluation -= board.number(board.legalMovements(p));
 
         //      - control center
         long blackThreatenedCells = board.getThreatenedCells(Color.BLACK);
@@ -42,27 +48,26 @@ public class Evaluator {
 
         int controlCenter = 0;
         if ((blackThreatenedCells & Library.pow2(35)) > 0)
-            controlCenter += 1;
+            controlCenter += 10;
         if ((blackThreatenedCells & Library.pow2(36)) > 0)
-            controlCenter += 1;
+            controlCenter += 10;
         if ((blackThreatenedCells & Library.pow2(27)) > 0)
-            controlCenter += 3;
+            controlCenter += 30;
         if ((blackThreatenedCells & Library.pow2(28)) > 0)
-            controlCenter += 3;
+            controlCenter += 30;
         if ((whiteThreatenedCells & Library.pow2(35)) > 0)
-            controlCenter -= 3;
+            controlCenter -= 30;
         if ((whiteThreatenedCells & Library.pow2(36)) > 0)
-            controlCenter -= 3;
+            controlCenter -= 30;
         if ((whiteThreatenedCells & Library.pow2(27)) > 0)
-            controlCenter -= 1;
+            controlCenter -= 10;
         if ((whiteThreatenedCells & Library.pow2(28)) > 0)
-            controlCenter -= 1;
+            controlCenter -= 10;
 
         if (color == Color.BLACK)
             evaluation += controlCenter;
         else
             evaluation -= controlCenter;
-
 
         // rooks on the same column
         List<Integer> blackRooks = new ArrayList<>();
@@ -72,14 +77,14 @@ public class Evaluator {
                 if (p.getColor() == color) {
                     if (blackRooks.contains(Library.log2(p.getPosition()) % 8))
                         // two rooks on the same column
-                        evaluation += 20;
+                        evaluation += 50;
                     else
                         blackRooks.add(Library.log2((p.getPosition()) % 8));
 
                 } else {
                     if (whiteRooks.contains(Library.log2(p.getPosition()) % 8))
                         // two rooks on the same column
-                        evaluation -= 20;
+                        evaluation -= 50;
                     else
                         whiteRooks.add((Library.log2(p.getPosition()) % 8));
                 }
@@ -94,13 +99,9 @@ public class Evaluator {
                 pawnPosition -= (Library.log2(p.getPosition()) / 8 - 1);
 
         if (color == Color.BLACK)
-            evaluation += pawnPosition;
+            evaluation += pawnPosition*4;
         else
-            evaluation -= pawnPosition;
-
-        // Malus
-        // tropisme (roi protégé par une pièce elle même menacée)
-
+            evaluation -= pawnPosition*4;
 
         return evaluation;
     }

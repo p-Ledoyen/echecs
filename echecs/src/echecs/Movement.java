@@ -11,8 +11,9 @@ public class Movement {
     }
 
     public Movement(String movement) {
-        this.initialPosition = Library.getCase(movement.charAt(0), movement.charAt(1));
-        this.finalPosition = Library.getCase(movement.charAt(2), movement.charAt(3));
+        this.initialPosition = Library.getCell(movement.charAt(0), movement.charAt(1));
+
+        this.finalPosition = Library.getCell(movement.charAt(2), movement.charAt(3));
     }
 
     public long getInitialPosition() {
@@ -25,6 +26,6 @@ public class Movement {
 
     @Override
     public String toString() {
-        return Library.getCase(initialPosition) + "" + Library.getCase(finalPosition);
+        return Library.getCell(initialPosition) + "" + Library.getCell(finalPosition);
     }
 }

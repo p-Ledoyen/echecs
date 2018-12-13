@@ -8,5 +8,5 @@ public class Constant {
     public static final int RookValue = 500;
     public static final int BishopValue = 300;
     public static final int PawnValue = 100;
-    public static final int KingValue = 100000000;
+    public static final int KingValue = 100000;
 }

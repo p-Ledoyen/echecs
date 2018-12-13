@@ -252,7 +252,7 @@ Engine to GUI:
 	     "info depth 12 nodes 123456 nps 100000".
 	Also all infos belonging to the pv should be sent together
 	e.g. "info depth 2 score cp 214 time 1242 nodes 2124 nps 34928 pv e2e4 e7e5 g1f3"
-	I suggest to start sending "currmove", "currmovenumber", "currline" and "refutation" only after one second
+	I suggest to start sending "currmove", "currmovenumber", "currline" and "refutation" only after one evaluation
 	to avoid too much traffic.
 	Additional info:
 	* depth <x>
@@ -287,7 +287,7 @@ Engine to GUI:
 	* hashfull <x>
 		the hash is x permill full, the engine should send this info regularly
 	* nps <x>
-		x nodes per second searched, the engine should send this info regularly
+		x nodes per evaluation searched, the engine should send this info regularly
 	* tbhits <x>
 		x positions where found in the endgame table bases
 	* sbhits <x>
@@ -439,7 +439,7 @@ GUI     engine
 // tell the engine to switch to UCI mode
 uci
 
-// engine identify  
+// engine identify
       id name Shredder
 		id author Stefan MK
 

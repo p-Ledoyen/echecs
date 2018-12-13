@@ -2,7 +2,7 @@ package echecs.engine;
 
 import echecs.Color;
 import echecs.Constant;
-import echecs.Couple;
+import echecs.EvaluationMovement;
 import echecs.Movement;
 
 import java.util.ArrayList;
@@ -14,9 +14,9 @@ public class SearchService implements Runnable {
     private int maxDepth;
     private Board board;
     private Color myColor;
-    private List<Couple> prevision;
-    private List<MaxThread> runnables;
-    private List<Thread> threads;
+    private List<EvaluationMovement> prevision;
+    private List<Thread> runnables;
+    private List<java.lang.Thread> threads;
     private String bestMove;
 
     public SearchService(Evaluator evaluator, Color myColor, Board board) {
@@ -27,12 +27,10 @@ public class SearchService implements Runnable {
         this.runnables = new ArrayList<>();
         this.threads = new ArrayList<>();
         for (int i = 0; i < Constant.THREADS_NB; i++) {
-            runnables.add(new MaxThread());
-            threads.add(new Thread(runnables.get(i)));
+            runnables.add(new Thread());
+            threads.add(new java.lang.Thread(runnables.get(i)));
             threads.get(i).start();
         }
-
-
     }
 
     public void setMyColor(Color myColor) {
@@ -40,38 +38,32 @@ public class SearchService implements Runnable {
     }
 
     public String getBestMove() {
-
-        System.out.println("info string prevision pdt get : " + prevision);
-        System.out.println("info string best pdf get : " + bestMove);
-
         return bestMove;
     }
 
     @Override
     public void run() {
-        System.out.println("info string Lancement de SearchService");
         if (this.prevision != null) {
             if (this.prevision.size() > 1)
                 this.prevision.remove(this.prevision.size() - 1);
             if (this.prevision.size() > 1)
                 this.prevision.remove(this.prevision.size() - 1);
-            if (this.prevision.size() > 1)
-                System.out.println("info string Prévision avant init : " + this.prevision.get(this.prevision.size() - 1).getFirst().toString());
         }
-
         threadCreation();
-        System.out.println("info string prevision fin create : " + prevision);
     }
 
+    /**
+     * Create threads to search the best move.
+     */
     private void threadCreation() {
-        List<List<Couple>> res = new ArrayList<>();
+        List<List<EvaluationMovement>> res = new ArrayList<>();
         List<Board> boards = new ArrayList<>();
         List<Movement> legalMovements = this.board.allLegalDeplacements(myColor);
 
         int length = legalMovements.size();
         Movement nextMovement = null;
         if (prevision != null && this.prevision.size() > 1)
-            nextMovement = prevision.get(prevision.size() - 1).getFirst();
+            nextMovement = prevision.get(prevision.size() - 1).getMovement();
 
 
         List<List<Movement>> movements = new ArrayList<>();
@@ -97,7 +89,7 @@ public class SearchService implements Runnable {
         while (System.currentTimeMillis() - time < 2000) {
             System.out.println("info string " + maxDepth);
 
-            for (MaxThread runnable : runnables)
+            for (Thread runnable : runnables)
                 runnable.startWithMax();
 
 
@@ -107,34 +99,33 @@ public class SearchService implements Runnable {
                 res.set(i, runnables.get(i).getRes());
             }
 
-            int best = res.get(0).get(res.get(0).size() - 1).getSecond();
+            int best = res.get(0).get(res.get(0).size() - 1).getEvaluation();
             int bestIndex = 0;
             for (int i = 1; i < Constant.THREADS_NB; i++) {
-                if (best < res.get(i).get(res.get(i).size() - 1).getSecond()) {
+                if (best < res.get(i).get(res.get(i).size() - 1).getEvaluation()) {
                     bestIndex = i;
-                    best = res.get(i).get(res.get(i).size() - 1).getSecond();
+                    best = res.get(i).get(res.get(i).size() - 1).getEvaluation();
                 }
             }
-            System.out.println("info string premier : " + movements.get(bestIndex).get(0));
-            System.out.println("info string taille res : " + res.get(0).size() + " bestindex : " + bestIndex + " score " + best);
             prevision = res.get(bestIndex);
-            bestMove = prevision.get(prevision.size() - 1).getFirst().toString();
-            System.out.println("info string prevision : " + prevision);
-            System.out.println("info string best : " + bestMove);
+            bestMove = prevision.get(prevision.size() - 1).getMovement().toString();
+            ;
             maxDepth++;
         }
-
     }
 
-    private List<Couple> maxValue(Board board, int depth, int alpha, int beta, Movement bestMoveFinded) {
+    /**
+     * Minimax function, max phase.
+     */
+    private List<EvaluationMovement> maxValue(Board board, int depth, int alpha, int beta, Movement bestMoveFinded) {
         if (depth == this.maxDepth) {
-            List<Couple> res = new ArrayList<>();
-            res.add(new Couple(null, this.evaluator.evaluate(board)));
+            List<EvaluationMovement> res = new ArrayList<>();
+            res.add(new EvaluationMovement(null, this.evaluator.evaluate(board)));
             return res;
         }
 
-        List<Couple> res = new ArrayList<>();
-        res.add(new Couple(null, -10000));
+        List<EvaluationMovement> res = new ArrayList<>();
+        res.add(new EvaluationMovement(null, -10000));
         List<Movement> movements = board.allLegalDeplacements(Color.other(myColor));
         if (bestMoveFinded != null)
             for (Movement m : movements)
@@ -146,16 +137,16 @@ public class SearchService implements Runnable {
         for (Movement m : movements) {
             board.makeMovement(m);
             if (!board.isMate(Color.other(myColor))) {
-                List<Couple> tmp = minValue(board, depth + 1, alpha, beta, res.size() == 1 ? null : res.get(res.size() - 2).getFirst());
+                List<EvaluationMovement> tmp = minValue(board, depth + 1, alpha, beta, res.size() == 1 ? null : res.get(res.size() - 2).getMovement());
                 board.cancelMovement(m);
 
-                if (tmp.get(tmp.size() - 1).getSecond() > res.get(res.size() - 1).getSecond()) {
+                if (tmp.get(tmp.size() - 1).getEvaluation() > res.get(res.size() - 1).getEvaluation()) {
                     res = tmp;
-                    res.add(new Couple(m, tmp.get(tmp.size() - 1).getSecond()));
+                    res.add(new EvaluationMovement(m, tmp.get(tmp.size() - 1).getEvaluation()));
                 }
-                if (res.get(res.size() - 1).getSecond() >= beta)
+                if (res.get(res.size() - 1).getEvaluation() >= beta)
                     return res;
-                alpha = Math.max(alpha, res.get(res.size() - 1).getSecond());
+                alpha = Math.max(alpha, res.get(res.size() - 1).getEvaluation());
             } else {
                 board.cancelMovement(m);
             }
@@ -164,14 +155,17 @@ public class SearchService implements Runnable {
 
     }
 
-    private List<Couple> minValue(Board board, int depth, int alpha, int beta, Movement bestMoveFinded) {
+    /**
+     * Minimax function, min phase.
+     */
+    private List<EvaluationMovement> minValue(Board board, int depth, int alpha, int beta, Movement bestMoveFinded) {
         if (depth == this.maxDepth) {
-            List<Couple> res = new ArrayList<>();
-            res.add(new Couple(null, this.evaluator.evaluate(board)));
+            List<EvaluationMovement> res = new ArrayList<>();
+            res.add(new EvaluationMovement(null, this.evaluator.evaluate(board)));
             return res;
         }
-        List<Couple> res = new ArrayList<>();
-        res.add(new Couple(null, 10000));
+        List<EvaluationMovement> res = new ArrayList<>();
+        res.add(new EvaluationMovement(null, 10000));
         List<Movement> movements = board.allLegalDeplacements(Color.other(myColor));
         if (bestMoveFinded != null)
             for (Movement m : movements)
@@ -183,16 +177,16 @@ public class SearchService implements Runnable {
         for (Movement m : movements) {
             board.makeMovement(m);
             if (!board.isMate(myColor)) {
-                List<Couple> tmp = maxValue(board, depth + 1, alpha, beta, res.size() == 1 ? null : res.get(res.size() - 2).getFirst());
+                List<EvaluationMovement> tmp = maxValue(board, depth + 1, alpha, beta, res.size() == 1 ? null : res.get(res.size() - 2).getMovement());
                 board.cancelMovement(m);
 
-                if (tmp.get(tmp.size() - 1).getSecond() < res.get(res.size() - 1).getSecond()) {
+                if (tmp.get(tmp.size() - 1).getEvaluation() < res.get(res.size() - 1).getEvaluation()) {
                     res = tmp;
-                    res.add(new Couple(m, tmp.get(tmp.size() - 1).getSecond()));
+                    res.add(new EvaluationMovement(m, tmp.get(tmp.size() - 1).getEvaluation()));
                 }
-                if (res.get(res.size() - 1).getSecond() <= alpha)
+                if (res.get(res.size() - 1).getEvaluation() <= alpha)
                     return res;
-                beta = Math.min(beta, res.get(res.size() - 1).getSecond());
+                beta = Math.min(beta, res.get(res.size() - 1).getEvaluation());
             } else {
                 board.cancelMovement(m);
             }
@@ -200,25 +194,28 @@ public class SearchService implements Runnable {
         return res;
     }
 
-    class MaxThread implements Runnable {
+    /**
+     * A thread that search on a part of tree search.
+     */
+    class Thread implements Runnable {
         private Board board;
         private List<Movement> movements;
-        private List<Couple> res;
+        private List<EvaluationMovement> res;
         private boolean resReady;
 
         @Override
         public void run() {
-            System.out.println("info string Lancement d'un thread de calcul");
-
             res = new ArrayList<>();
             while (true) ;
-
         }
 
+        /**
+         * Start researches.
+         */
         public void startWithMax() {
             resReady = false;
             res.clear();
-            this.res.add(new Couple(null, -10000));
+            this.res.add(new EvaluationMovement(null, -10000));
 
             int alpha = -1000;
             int beta = 10000;
@@ -227,18 +224,18 @@ public class SearchService implements Runnable {
                 board.makeMovement(m);
 
                 if (!board.isMate(myColor)) {
-                    List<Couple> tmp = minValue(board, 1, alpha, beta, this.res.size() == 1 ? null : this.res.get(this.res.size() - 2).getFirst());
+                    List<EvaluationMovement> tmp = minValue(board, 1, alpha, beta, this.res.size() == 1 ? null : this.res.get(this.res.size() - 2).getMovement());
                     this.board.cancelMovement(m);
 
-                    if (tmp.get(tmp.size() - 1).getSecond() > this.res.get(this.res.size() - 1).getSecond()) {
+                    if (tmp.get(tmp.size() - 1).getEvaluation() > this.res.get(this.res.size() - 1).getEvaluation()) {
                         this.res = tmp;
-                        this.res.add(new Couple(m, tmp.get(tmp.size() - 1).getSecond()));
+                        this.res.add(new EvaluationMovement(m, tmp.get(tmp.size() - 1).getEvaluation()));
                     }
-                    if (this.res.get(this.res.size() - 1).getSecond() >= beta) {
+                    if (this.res.get(this.res.size() - 1).getEvaluation() >= beta) {
                         resReady = true;
                         return;
                     }
-                    alpha = Math.max(alpha, this.res.get(this.res.size() - 1).getSecond());
+                    alpha = Math.max(alpha, this.res.get(this.res.size() - 1).getEvaluation());
                 } else {
                     board.cancelMovement(m);
                 }
@@ -247,21 +244,32 @@ public class SearchService implements Runnable {
             return;
         }
 
+        /**
+         * Check if the thread have finiched his reserches.
+         *
+         * @return True if the thread ins't active
+         */
         public boolean isResReady() {
             return resReady;
         }
 
-        public List<Couple> getRes() {
+        /**
+         * Get the result finded by the thread.
+         *
+         * @return The list of the next moves
+         */
+        public List<EvaluationMovement> getRes() {
             return this.res;
         }
 
+        /**
+         * Initiliaer the thread.
+         * @param board The board with the last moves.
+         * @param movements The first movements in the tree (depth 1)
+         */
         public void set(Board board, List<Movement> movements) {
             this.board = board;
             this.movements = movements;
         }
-
-
     }
-
-
 }
