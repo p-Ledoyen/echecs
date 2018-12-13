@@ -12,7 +12,7 @@ public class Engine {
     private Link input;
     private Thread inputThread;
     private Thread searchThread;
-
+    private String adverseBestMove;
 
     public Engine() {
         this.board = new Board();
@@ -20,7 +20,7 @@ public class Engine {
 
         this.input = new Link();
         this.inputThread = new Thread(input);
-        this.searchService = new SearchService(evaluator, Color.WHITE,this.board);
+        this.searchService = new SearchService(evaluator, Color.WHITE, this.board);
         this.searchThread = new Thread(searchService);
     }
 
@@ -33,7 +33,7 @@ public class Engine {
         this.inputThread.start();
         //    this.searchThread.start();
 
-        while (processGuiMessages(50)){
+        while (processGuiMessages(50)) {
 
         }
         //Stop the input thread
@@ -47,17 +47,17 @@ public class Engine {
      * @param wait The time maximum to wait the next message.
      * @return True a message is read different to 'quit'
      */
-    private boolean processGuiMessages(int wait){
-        if (this.input.isInputReady()){
+    private boolean processGuiMessages(int wait) {
+        if (this.input.isInputReady()) {
             String input = this.input.getNextInput();
             if (input.split(" ")[0].equals("quit")) return false;
-            else{
+            else {
                 process(input);
                 return true;
             }
         }
 
-        if (wait>0) {
+        if (wait > 0) {
             try {
                 Thread.sleep(wait);
             } catch (InterruptedException e) {
@@ -69,13 +69,14 @@ public class Engine {
 
     /**
      * Process a message receive by arena and answer to it
+     *
      * @param input The message received
      */
     private void process(String input) {
 
         String[] command = input.split(" ");
 
-        switch(command[0]){
+        switch (command[0]) {
             case "uci":
                 System.out.println("id author Aurélie et Paul");
                 System.out.println("uciok");
@@ -109,25 +110,44 @@ public class Engine {
                     searchService.setMyColor(Color.BLACK);
                     evaluator.setColor(Color.BLACK);
                 }
-                if(command[command.length-1].matches("([a-h][1-8]){2}"))
-                    board.makeMovement(new Movement(command[command.length-1]));
+                if (command[command.length - 1].matches("([a-h][1-8]){2}")) {
+                    if (!command[command.length - 1].equals(adverseBestMove)) {
+                        searchThread.stop();
+                        board.cancelMovement(new Movement(adverseBestMove));
+                        board.makeMovement(new Movement(command[command.length - 1]));
+                        System.out.println("info string " + board);
+                    }
+
+                }
                 break;
 
             case "go":
                 //Quels que soient les paramètres, on autorise seulement 2sec de recherche.
-                searchThread = new Thread(searchService);
-                searchThread.start();
+                if (!searchThread.isAlive()) {
+                    System.out.println("info string thread search service mort, redémarrage, comme ça on voit où c'est, ok ???????!!!!!!!!!");
+                    searchThread = new Thread(searchService);
+                    System.out.println("info string " + board);
+                    searchThread.start();
+                }
                 try {
                     Thread.sleep(2000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
 
-                String bestmove=this.searchService.getBestMove();
+                String bestmove = this.searchService.getBestMove();
                 board.makeMovement(new Movement(bestmove));
-                System.out.println("bestmove "+bestmove);
+                System.out.println("bestmove " + bestmove);
 
                 searchThread.stop();
+
+                adverseBestMove = this.searchService.getAdverseBestMove();
+                System.out.println("info string adverse best move " + adverseBestMove);
+                board.makeMovement(new Movement(adverseBestMove));
+                searchThread = new Thread(searchService);
+                searchThread.start();
+
+
                 break;
 
             case "stop":

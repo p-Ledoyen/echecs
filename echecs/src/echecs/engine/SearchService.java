@@ -18,6 +18,7 @@ public class SearchService implements Runnable {
     private List<Thread> runnables;
     private List<java.lang.Thread> threads;
     private String bestMove;
+    private String adverseBestMove;
 
     public SearchService(Evaluator evaluator, Color myColor, Board board) {
         this.evaluator = evaluator;
@@ -39,6 +40,10 @@ public class SearchService implements Runnable {
 
     public String getBestMove() {
         return bestMove;
+    }
+
+    public String getAdverseBestMove() {
+        return adverseBestMove;
     }
 
     @Override
@@ -85,8 +90,8 @@ public class SearchService implements Runnable {
             this.runnables.get(i).set(boards.get(i), movements.get(i));
 
         long time = System.currentTimeMillis();
-        maxDepth = 1;
-        while (System.currentTimeMillis() - time < 2000) {
+        maxDepth = 2;
+        while (System.currentTimeMillis() - time < 50000) {
             System.out.println("info string " + maxDepth);
 
             for (Thread runnable : runnables)
@@ -109,7 +114,8 @@ public class SearchService implements Runnable {
             }
             prevision = res.get(bestIndex);
             bestMove = prevision.get(prevision.size() - 1).getMovement().toString();
-            ;
+            adverseBestMove = prevision.get(prevision.size() - 2).getMovement().toString();
+
             maxDepth++;
         }
     }
