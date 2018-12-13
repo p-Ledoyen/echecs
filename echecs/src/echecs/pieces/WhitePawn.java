@@ -51,7 +51,8 @@ public class WhitePawn extends Piece {
         res |= this.threatened.get(this.position) & adversePieces;
         if (powPosition / 8 == 1 && (Library.pow2(powPosition + 16) & ~myPieces & ~adversePieces) != 0 && (Library.pow2(powPosition + 8) & ~myPieces & ~adversePieces) != 0)
             res |= Library.pow2(powPosition + 16);
-        res |= Library.pow2(powPosition + 8);
+        if ((Library.pow2(powPosition + 8) & ~myPieces & ~adversePieces) != 0)
+            res |= Library.pow2(powPosition + 8);
         return res;
     }
 }
