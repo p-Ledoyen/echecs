@@ -92,7 +92,7 @@ public class SearchService implements Runnable {
         long time = System.currentTimeMillis();
         maxDepth = 2;
         while (System.currentTimeMillis() - time < 50000) {
-            System.out.println("info string " + maxDepth);
+            //System.out.println("info string " + maxDepth);
 
             for (Thread runnable : runnables)
                 runnable.startWithMax();

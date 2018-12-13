@@ -102,20 +102,21 @@ public class Engine {
 
             case "position":
                 if (command.length == 2) {
-                    System.out.println("info string Echecs dit : ma couleur est BLANC");
+                    //System.out.println("info string Echecs dit : ma couleur est BLANC");
                     searchService.setMyColor(Color.WHITE);
                     evaluator.setColor(Color.WHITE);
                 } else if (command.length == 4) {
-                    System.out.println("info string Echecs dit : ma couleur est NOIR");
+                    //System.out.println("info string Echecs dit : ma couleur est NOIR");
                     searchService.setMyColor(Color.BLACK);
                     evaluator.setColor(Color.BLACK);
+                    board.makeMovement(new Movement(command[command.length - 1]));
                 }
                 if (command[command.length - 1].matches("([a-h][1-8]){2}")) {
-                    if (!command[command.length - 1].equals(adverseBestMove)) {
+                    if (command.length != 4 && !command[command.length - 1].equals(adverseBestMove)) {
                         searchThread.stop();
                         board.cancelMovement(new Movement(adverseBestMove));
                         board.makeMovement(new Movement(command[command.length - 1]));
-                        System.out.println("info string " + board);
+                        //System.out.println("info string " + board);
                     }
 
                 }
@@ -124,13 +125,13 @@ public class Engine {
             case "go":
                 //Quels que soient les paramètres, on autorise seulement 2sec de recherche.
                 if (!searchThread.isAlive()) {
-                    System.out.println("info string thread search service mort, redémarrage, comme ça on voit où c'est, ok ???????!!!!!!!!!");
+                    //System.out.println("info string thread search service mort, redémarrage, comme ça on voit où c'est, ok ???????!!!!!!!!!");
                     searchThread = new Thread(searchService);
-                    System.out.println("info string " + board);
+                    //System.out.println("info string " + board);
                     searchThread.start();
                 }
                 try {
-                    Thread.sleep(2000);
+                    Thread.sleep(5000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -138,11 +139,12 @@ public class Engine {
                 String bestmove = this.searchService.getBestMove();
                 board.makeMovement(new Movement(bestmove));
                 System.out.println("bestmove " + bestmove);
+                //System.out.println("info string  best move " + bestmove);
 
                 searchThread.stop();
 
                 adverseBestMove = this.searchService.getAdverseBestMove();
-                System.out.println("info string adverse best move " + adverseBestMove);
+                // System.out.println("info string adverse best move " + adverseBestMove);
                 board.makeMovement(new Movement(adverseBestMove));
                 searchThread = new Thread(searchService);
                 searchThread.start();
