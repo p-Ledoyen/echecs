@@ -13,6 +13,7 @@ public class Board implements Cloneable {
 
     private List<Piece> pieces;
     private Stack<Piece> piecesEaten;
+    private Stack<Piece> promotion;
 
     // true if the castling isn't possible anymore (rook movement or king movement)
     private boolean noMovementSmallCastling;
@@ -26,11 +27,12 @@ public class Board implements Cloneable {
         this.noMovementBigCastling = true;
         this.noMovementSmallCastling = true;
         this.piecesEaten = new Stack<>();
+        this.promotion = new Stack<>();
 
         // Initilization of the positions
         //      - black echecs.pieces
         this.pieces = new ArrayList<>();
-        this.pieces.add(new King(60, Color.BLACK));
+       /* this.pieces.add(new King(60, Color.BLACK));
         this.pieces.add(new Queen(59, Color.BLACK));
         this.pieces.add(new Bishop(58, Color.BLACK));
         this.pieces.add(new Bishop(61, Color.BLACK));
@@ -64,6 +66,28 @@ public class Board implements Cloneable {
         this.pieces.add(new WhitePawn(13, Color.WHITE));
         this.pieces.add(new WhitePawn(14, Color.WHITE));
         this.pieces.add(new WhitePawn(15, Color.WHITE));
+        */
+
+        this.pieces.add(new WhitePawn(54, Color.WHITE));
+
+        this.pieces.add(new BlackPawn(48, Color.BLACK));
+        this.pieces.add(new BlackPawn(49, Color.BLACK));
+        this.pieces.add(new BlackPawn(50, Color.BLACK));
+        this.pieces.add(new BlackPawn(53, Color.BLACK));
+        this.pieces.add(new Bishop(35, Color.BLACK));
+        this.pieces.add(new Rook(44, Color.BLACK));
+        this.pieces.add(new King(51, Color.BLACK));
+
+
+        this.pieces.add(new King(29, Color.WHITE));
+        this.pieces.add(new WhitePawn(9, Color.WHITE));
+        this.pieces.add(new WhitePawn(13, Color.WHITE));
+        this.pieces.add(new WhitePawn(14, Color.WHITE));
+        this.pieces.add(new WhitePawn(24, Color.WHITE));
+        this.pieces.add(new WhitePawn(31, Color.WHITE));
+        this.pieces.add(new Knight(21, Color.WHITE));
+        this.pieces.add(new Rook(0, Color.WHITE));
+        this.pieces.add(new Rook(7, Color.WHITE));
     }
 
     /////////////////////////
@@ -156,13 +180,15 @@ public class Board implements Cloneable {
 
     public List<Movement> allLegalDeplacements(Color color) {
         List<Movement> res = new ArrayList<>();
-        for (Piece p : this.pieces)
+        for (int i = 0; i < pieces.size(); i++) {
+            Piece p = pieces.get(i);
             if (color == p.getColor() && p.getAlive()) {
                 List<Long> finalPositions = Library.extract(this.legalDeplacements(p));
                 for (long l : finalPositions) {
                     res.add(new Movement(p.getPosition(), l));
                 }
             }
+        }
 
         return res;
     }
@@ -179,21 +205,48 @@ public class Board implements Cloneable {
         if (!eaten)
             this.piecesEaten.push(null);
 
-        for (Piece p : this.pieces)
+        boolean promotion = false;
+        for (int i = 0; i < pieces.size(); i++) {
+            Piece p = pieces.get(i);
             if (p.getPosition() == movement.getInitialPosition() && p.getAlive()) {
                 p.setPosition(movement.getFinalPosition());
+                if (p instanceof BlackPawn && Library.log2(p.getPosition()) / 8 == 0) {
+                    pieces.set(i, new Queen(Library.log2(p.getPosition()), Color.BLACK));
+                    this.promotion.push(p);
+                    promotion = true;
+                } else if (p instanceof WhitePawn && Library.log2(p.getPosition()) / 8 == 7) {
+                    pieces.set(i, new Queen(Library.log2(p.getPosition()), Color.WHITE));
+                    this.promotion.push(pieces.get(i));
+                    promotion = true;
+                }
                 break;
             }
+        }
+
+        if (!promotion)
+            this.promotion.push(null);
+
     }
 
     public void cancelMovement(Movement movement) {
-        for (Piece p1 : this.pieces)
+        Piece p = this.promotion.pop();
+
+        for (int i = 0; i < pieces.size(); i++) {
+            Piece p1 = pieces.get(i);
             if (p1.getPosition() == movement.getFinalPosition() && p1.getAlive()) {
-                p1.setPosition(movement.getInitialPosition());
+                if (p != null)
+                    // a pawn has been promoted
+                    if (p.getColor() == Color.WHITE)
+                        pieces.set(i, new WhitePawn(Library.log2(movement.getInitialPosition()), Color.WHITE));
+                    else
+                        pieces.set(i, new BlackPawn(Library.log2(movement.getInitialPosition()), Color.BLACK));
+                else
+                    p1.setPosition(movement.getInitialPosition());
                 break;
             }
+        }
 
-        Piece p = piecesEaten.pop();
+        p = piecesEaten.pop();
         if (p != null)
             p.setAlive(true);
 

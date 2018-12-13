@@ -14,9 +14,9 @@ public class Queen extends Piece {
 
         this.position = Library.pow2(pow);
 
+        this.alive = true;
         this.movements = new HashMap<>();
         for (int i = 0; i < 64; i++) {
-            this.alive = true;
             long dep = 0;
             for (int j = i % 8; j < 64; j += 8)
                 if (j != i)
