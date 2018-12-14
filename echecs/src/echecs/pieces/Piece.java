@@ -43,11 +43,12 @@ public abstract class Piece implements Cloneable {
      * @param occupiedCells The cells ocuupied by other pieces.
      * @return All cells threatened by 'this' (on a bitboard).
      */
-    public abstract long specializedThreatenedCells(long occupiedCells);
+    public abstract long specializedThreatenedCells(long myPieces, long adversePiece);
 
     /**
      * Get all movements that a piece can make.
-     * @param myPieces The cells occupied by the pieces of the player
+     *
+     * @param myPieces      The cells occupied by the pieces of the player
      * @param adversePieces The cells occupied by the pieces of the other player
      * @return All movements that the piece can make (on a bitboard)
      */
@@ -55,19 +56,21 @@ public abstract class Piece implements Cloneable {
 
     /**
      * Get the cells threatened by a generic piece.
+     *
      * @param occupiedCells The cells ocuupied by other pieces.
      * @return All cells threatened by 'this' (on a bitboard).
      */
-    public long threatenedCells(long occupiedCells) {
+    public long threatenedCells(long myPieces, long adversePieces) {
         if (this.alive)
-            return this.specializedThreatenedCells(occupiedCells);
+            return this.specializedThreatenedCells(myPieces, adversePieces);
         else
             return 0;
     }
 
     /**
      * Get all movements that a generic piece can make.
-     * @param myPieces The cells occupied by the pieces of the player
+     *
+     * @param myPieces      The cells occupied by the pieces of the player
      * @param adversePieces The cells occupied by the pieces of the other player
      * @return All movements that the piece can make (on a bitboard)
      */
@@ -80,6 +83,7 @@ public abstract class Piece implements Cloneable {
 
     /**
      * Copy a piece.
+     *
      * @return A nex piece similar to this.
      */
     public Piece copy() {

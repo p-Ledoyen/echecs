@@ -40,8 +40,8 @@ public class BlackPawn extends Piece {
     }
 
     @Override
-    public long specializedThreatenedCells(long occupiedCells) {
-        return this.threatened.get(this.position);
+    public long specializedThreatenedCells(long myPieces, long adversePieces) {
+        return this.threatened.get(this.position) & ~myPieces;
     }
 
     @Override

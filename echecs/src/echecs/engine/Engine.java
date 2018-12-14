@@ -103,53 +103,50 @@ public class Engine {
 
             case "position":
                 if (command.length == 2) {
-                    //System.out.println("info string Echecs dit : ma couleur est BLANC");
+                    System.out.println("info string Echecs dit : ma couleur est BLANC");
                     searchService.setMyColor(Color.WHITE);
                     evaluator.setColor(Color.WHITE);
                 } else if (command.length == 4) {
-                    //System.out.println("info string Echecs dit : ma couleur est NOIR");
+                    System.out.println("info string Echecs dit : ma couleur est NOIR");
                     searchService.setMyColor(Color.BLACK);
                     evaluator.setColor(Color.BLACK);
                     board.makeMovement(new Movement(command[command.length - 1]));
+                } else if (command[command.length - 1].matches("([a-h][1-8]){2}") /*&& !command[command.length - 1].equals(adverseBestMove)*/) {
+                    /*searchThread.interrupt();
+                    board.cancelMovement(new Movement(adverseBestMove));*/
+                    board.makeMovement(new Movement(command[command.length - 1]));
+                   /* System.out.println("info string  loupe ... ");
+                    searchService.threadCreation();*/
                 }
-                if (command[command.length - 1].matches("([a-h][1-8]){2}")) {
-                    if (command.length != 4 && !command[command.length - 1].equals(adverseBestMove)) {
-                        searchThread.stop();
-                        searchThread = new Thread(searchService);
-                        board.cancelMovement(new Movement(adverseBestMove));
-                        board.makeMovement(new Movement(command[command.length - 1]));
-                        System.out.println("info string" + board);
-                        System.out.println("info string loupe");
-                    }
 
-                }
                 break;
 
             case "go":
                 //Quels que soient les paramètres, on autorise seulement 2sec de recherche.
-                try {
+
+                if (!searchService.isActive())
                     searchThread.start();
-                } catch (Exception e) {
-                }
+                else
+                    searchService.threadCreation();
 
                 try {
-                    Thread.sleep(5000);
+                    Thread.sleep(10000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
+                System.out.println("info string kill ");
 
+                searchThread.interrupt();
                 String bestmove = this.searchService.getBestMove();
-                board.makeMovement(new Movement(bestmove));
                 System.out.println("info string  best move " + bestmove);
+                board.makeMovement(new Movement(bestmove));
                 System.out.println("bestmove " + bestmove);
 
-                searchThread.stop();
 
                 adverseBestMove = this.searchService.getAdverseBestMove();
-                // System.out.println("info string adverse best move " + adverseBestMove);
-                board.makeMovement(new Movement(adverseBestMove));
-                searchThread = new Thread(searchService);
-                searchThread.start();
+                System.out.println("info string adverse best move " + adverseBestMove);
+                /*board.makeMovement(new Movement(adverseBestMove));
+                searchService.threadCreation();*/
 
 
                 break;

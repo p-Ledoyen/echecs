@@ -7,6 +7,8 @@ import echecs.Movement;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CyclicBarrier;
 
 public class SearchService implements Runnable {
 
@@ -16,21 +18,18 @@ public class SearchService implements Runnable {
     private Color myColor;
     private List<EvaluationMovement> prevision;
     private List<Thread> runnables;
-    private List<java.lang.Thread> threads;
     private String bestMove;
     private String adverseBestMove;
+    private boolean active;
 
     public SearchService(Evaluator evaluator, Color myColor, Board board) {
+        this.active = false;
         this.evaluator = evaluator;
-        this.maxDepth = 1;
         this.myColor = myColor;
         this.board = board;
         this.runnables = new ArrayList<>();
-        this.threads = new ArrayList<>();
         for (int i = 0; i < Constant.THREADS_NB; i++) {
             runnables.add(new Thread());
-            threads.add(new java.lang.Thread(runnables.get(i)));
-            threads.get(i).start();
         }
     }
 
@@ -46,21 +45,33 @@ public class SearchService implements Runnable {
         return adverseBestMove;
     }
 
+    public boolean isActive() {
+        return active;
+    }
+
     @Override
     public void run() {
-        if (this.prevision != null) {
-            if (this.prevision.size() > 1)
-                this.prevision.remove(this.prevision.size() - 1);
-            if (this.prevision.size() > 1)
-                this.prevision.remove(this.prevision.size() - 1);
-        }
+        this.active = true;
         threadCreation();
     }
 
     /**
      * Create threads to search the best move.
      */
-    private void threadCreation() {
+
+    public void threadCreation() {
+        maxDepth = 1;
+        if (this.prevision != null) {
+            //System.out.println("extract prevision");
+            if (this.prevision.size() > 1)
+                this.prevision.remove(this.prevision.size() - 1);
+            if (this.prevision.size() > 1)
+                this.prevision.remove(this.prevision.size() - 1);
+        }
+
+        // Init a barrier to wait all thread ending
+        CyclicBarrier cb = new CyclicBarrier(Constant.THREADS_NB + 1);
+
         List<List<EvaluationMovement>> res = new ArrayList<>();
         List<Board> boards = new ArrayList<>();
         List<Movement> legalMovements = this.board.allLegalDeplacements(myColor);
@@ -70,13 +81,11 @@ public class SearchService implements Runnable {
         if (prevision != null && this.prevision.size() > 1)
             nextMovement = prevision.get(prevision.size() - 1).getMovement();
 
-
         List<List<Movement>> movements = new ArrayList<>();
 
         for (int i = 0; i < Constant.THREADS_NB; i++) {
             //init boards
             boards.add(this.board.copy());
-            System.out.println("info string thread   " + board);
             //init movements
             List<Movement> m = new ArrayList<>();
             if (nextMovement != null && legalMovements.contains(nextMovement))
@@ -85,26 +94,39 @@ public class SearchService implements Runnable {
             movements.add(m);
             //init res
             res.add(new ArrayList<>());
+
+            this.runnables.get(i).set(boards.get(i), movements.get(i), cb);
         }
 
-        for (int i = 0; i < Constant.THREADS_NB; i++)
-            this.runnables.get(i).set(boards.get(i), movements.get(i));
-
         long time = System.currentTimeMillis();
-        maxDepth = 2;
-        while (System.currentTimeMillis() - time < 50000) {
-            //System.out.println("info string " + maxDepth);
+        //System.out.println("info string " + maxDepth);
 
-            for (Thread runnable : runnables)
-                runnable.startWithMax();
+        // Start all threads
+        for (Thread t : runnables)
+            new java.lang.Thread(t).start();
 
-
-            for (int i = 0; i < Constant.THREADS_NB; i++) {
-                while (!runnables.get(i).isResReady()) {
-                }
-                res.set(i, runnables.get(i).getRes());
+        // while (System.currentTimeMillis() - time < 40000) {
+        while (maxDepth < 3) {
+            maxDepth++;
+            System.out.println("info string depth = " + maxDepth);
+            //System.out.println("attente des thread");
+            try {
+                cb.await();
+                //System.out.println("fin attente");
+            } catch (InterruptedException e) {
+                System.out.println("inteppruted expcetion dans creation");
+                return;
+            } catch (BrokenBarrierException e) {
+                System.out.println("BrokenBarrierException dans creation");
+                return;
             }
 
+            for (int i = 0; i < Constant.THREADS_NB; i++) {
+                res.set(i, runnables.get(i).getRes());
+                //System.out.println("info string result du thread " + i + "  " + runnables.get(i).getRes());
+            }
+
+            // get the best result of all threads
             int best = res.get(0).get(res.get(0).size() - 1).getEvaluation();
             int bestIndex = 0;
             for (int i = 1; i < Constant.THREADS_NB; i++) {
@@ -114,91 +136,12 @@ public class SearchService implements Runnable {
                 }
             }
             prevision = res.get(bestIndex);
+            //System.out.println("info string previsions fin depth " + maxDepth + "  " + prevision);
             bestMove = prevision.get(prevision.size() - 1).getMovement().toString();
             adverseBestMove = prevision.get(prevision.size() - 2).getMovement().toString();
 
-            maxDepth++;
+
         }
-    }
-
-    /**
-     * Minimax function, max phase.
-     */
-    private List<EvaluationMovement> maxValue(Board board, int depth, int alpha, int beta, Movement bestMoveFinded) {
-        if (depth == this.maxDepth) {
-            List<EvaluationMovement> res = new ArrayList<>();
-            res.add(new EvaluationMovement(null, this.evaluator.evaluate(board)));
-            return res;
-        }
-
-        List<EvaluationMovement> res = new ArrayList<>();
-        res.add(new EvaluationMovement(null, -10000));
-        List<Movement> movements = board.allLegalDeplacements(Color.other(myColor));
-        if (bestMoveFinded != null)
-            for (Movement m : movements)
-                if (m.toString().equals(bestMoveFinded.toString())) {
-                    movements.remove(m);
-                    movements.add(0, bestMoveFinded);
-                    break;
-                }
-        for (Movement m : movements) {
-            board.makeMovement(m);
-            if (!board.isMate(Color.other(myColor))) {
-                List<EvaluationMovement> tmp = minValue(board, depth + 1, alpha, beta, res.size() == 1 ? null : res.get(res.size() - 2).getMovement());
-                board.cancelMovement(m);
-
-                if (tmp.get(tmp.size() - 1).getEvaluation() > res.get(res.size() - 1).getEvaluation()) {
-                    res = tmp;
-                    res.add(new EvaluationMovement(m, tmp.get(tmp.size() - 1).getEvaluation()));
-                }
-                if (res.get(res.size() - 1).getEvaluation() >= beta)
-                    return res;
-                alpha = Math.max(alpha, res.get(res.size() - 1).getEvaluation());
-            } else {
-                board.cancelMovement(m);
-            }
-        }
-        return res;
-
-    }
-
-    /**
-     * Minimax function, min phase.
-     */
-    private List<EvaluationMovement> minValue(Board board, int depth, int alpha, int beta, Movement bestMoveFinded) {
-        if (depth == this.maxDepth) {
-            List<EvaluationMovement> res = new ArrayList<>();
-            res.add(new EvaluationMovement(null, this.evaluator.evaluate(board)));
-            return res;
-        }
-        List<EvaluationMovement> res = new ArrayList<>();
-        res.add(new EvaluationMovement(null, 10000));
-        List<Movement> movements = board.allLegalDeplacements(Color.other(myColor));
-        if (bestMoveFinded != null)
-            for (Movement m : movements)
-                if (m.toString().equals(bestMoveFinded.toString())) {
-                    movements.remove(m);
-                    movements.add(0, bestMoveFinded);
-                    break;
-                }
-        for (Movement m : movements) {
-            board.makeMovement(m);
-            if (!board.isMate(myColor)) {
-                List<EvaluationMovement> tmp = maxValue(board, depth + 1, alpha, beta, res.size() == 1 ? null : res.get(res.size() - 2).getMovement());
-                board.cancelMovement(m);
-
-                if (tmp.get(tmp.size() - 1).getEvaluation() < res.get(res.size() - 1).getEvaluation()) {
-                    res = tmp;
-                    res.add(new EvaluationMovement(m, tmp.get(tmp.size() - 1).getEvaluation()));
-                }
-                if (res.get(res.size() - 1).getEvaluation() <= alpha)
-                    return res;
-                beta = Math.min(beta, res.get(res.size() - 1).getEvaluation());
-            } else {
-                board.cancelMovement(m);
-            }
-        }
-        return res;
     }
 
     /**
@@ -208,57 +151,8 @@ public class SearchService implements Runnable {
         private Board board;
         private List<Movement> movements;
         private List<EvaluationMovement> res;
-        private boolean resReady;
-
-        @Override
-        public void run() {
-            res = new ArrayList<>();
-            while (true) ;
-        }
-
-        /**
-         * Start researches.
-         */
-        public void startWithMax() {
-            resReady = false;
-            res.clear();
-            this.res.add(new EvaluationMovement(null, -10000));
-
-            int alpha = -1000;
-            int beta = 10000;
-
-            for (Movement m : movements) {
-                board.makeMovement(m);
-
-                if (!board.isMate(myColor)) {
-                    List<EvaluationMovement> tmp = minValue(board, 1, alpha, beta, this.res.size() == 1 ? null : this.res.get(this.res.size() - 2).getMovement());
-                    this.board.cancelMovement(m);
-
-                    if (tmp.get(tmp.size() - 1).getEvaluation() > this.res.get(this.res.size() - 1).getEvaluation()) {
-                        this.res = tmp;
-                        this.res.add(new EvaluationMovement(m, tmp.get(tmp.size() - 1).getEvaluation()));
-                    }
-                    if (this.res.get(this.res.size() - 1).getEvaluation() >= beta) {
-                        resReady = true;
-                        return;
-                    }
-                    alpha = Math.max(alpha, this.res.get(this.res.size() - 1).getEvaluation());
-                } else {
-                    board.cancelMovement(m);
-                }
-            }
-            resReady = true;
-            return;
-        }
-
-        /**
-         * Check if the thread have finiched his reserches.
-         *
-         * @return True if the thread ins't active
-         */
-        public boolean isResReady() {
-            return resReady;
-        }
+        private CyclicBarrier cb;
+        private int maxDepth;
 
         /**
          * Get the result finded by the thread.
@@ -270,13 +164,148 @@ public class SearchService implements Runnable {
         }
 
         /**
-         * Initiliaer the thread.
-         * @param board The board with the last moves.
+         * Initiliaze the thread.
+         *
+         * @param board     The board with the last moves.
          * @param movements The first movements in the tree (depth 1)
          */
-        public void set(Board board, List<Movement> movements) {
+        public void set(Board board, List<Movement> movements, CyclicBarrier cb) {
             this.board = board;
             this.movements = movements;
+            this.cb = cb;
+        }
+
+        @Override
+        public void run() {
+            res = new ArrayList<>();
+            res.clear();
+            this.maxDepth = 2;
+
+            int alpha = -1000;
+            int beta = 10000;
+
+            long time = System.currentTimeMillis();
+            // while (System.currentTimeMillis() - time < 40000) {
+            while (maxDepth < 4) {
+                //System.out.println("demarage de la recherche");
+                for (Movement m : movements) {
+                    board.makeMovement(m);
+
+                    if (!board.isMate(myColor)) {
+                        List<EvaluationMovement> tmp = minValue(board, 1, alpha, beta, this.res.size() < 2 ? null : this.res.get(this.res.size() - 2).getMovement());
+                        this.board.cancelMovement(m);
+
+                        if (tmp.size() == 0) {
+                            // check mate
+                            this.res.add(new EvaluationMovement(m, 10000000));
+                            cb.reset();
+                            return;
+                        }
+
+                        if (this.res.size() == 0 || tmp.get(tmp.size() - 1).getEvaluation() > this.res.get(this.res.size() - 1).getEvaluation()) {
+                            this.res = tmp;
+                            this.res.add(new EvaluationMovement(m, tmp.get(tmp.size() - 1).getEvaluation()));
+                        }
+                        if (this.res.get(this.res.size() - 1).getEvaluation() >= beta) {
+                            break;
+                        }
+                        alpha = Math.max(alpha, this.res.get(this.res.size() - 1).getEvaluation());
+                    } else {
+                        board.cancelMovement(m);
+                    }
+                }
+                try {
+
+                    //System.out.println("fin recherche");
+                    cb.await();
+
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (BrokenBarrierException e) {
+                    System.out.println("Broken barrier exception dans un thread");
+                    return;
+                }
+                maxDepth++;
+            }
+        }
+
+        /**
+         * Minimax function, max phase.
+         */
+        private List<EvaluationMovement> maxValue(Board board, int depth, int alpha, int beta, Movement bestMoveFinded) {
+            if (depth >= this.maxDepth) {
+                List<EvaluationMovement> res = new ArrayList<>();
+                res.add(new EvaluationMovement(null, evaluator.evaluate(board)));
+                return res;
+            }
+
+            List<EvaluationMovement> res = new ArrayList<>();
+            List<Movement> movements = board.allLegalDeplacements(myColor);
+            if (bestMoveFinded != null)
+                for (Movement m : movements)
+                    if (m.toString().equals(bestMoveFinded.toString())) {
+                        movements.remove(m);
+                        movements.add(0, bestMoveFinded);
+                        break;
+                    }
+            for (Movement m : movements) {
+                board.makeMovement(m);
+                if (!board.isMate(myColor)) {
+                    List<EvaluationMovement> tmp = minValue(board, depth + 1, alpha, beta, res.size() < 2 ? null : res.get(res.size() - 2).getMovement());
+                    board.cancelMovement(m);
+
+                    if (res.size() == 0 || tmp.get(tmp.size() - 1).getEvaluation() > res.get(res.size() - 1).getEvaluation()) {
+                        res = tmp;
+                        res.add(new EvaluationMovement(m, tmp.get(tmp.size() - 1).getEvaluation()));
+                    }
+                    if (res.get(res.size() - 1).getEvaluation() >= beta)
+                        return res;
+                    alpha = Math.max(alpha, res.get(res.size() - 1).getEvaluation());
+                } else {
+                    board.cancelMovement(m);
+                }
+            }
+            return res;
+
+        }
+
+        /**
+         * Minimax function, min phase.
+         */
+        private List<EvaluationMovement> minValue(Board board, int depth, int alpha, int beta, Movement bestMoveFinded) {
+            if (depth >= this.maxDepth) {
+                List<EvaluationMovement> res = new ArrayList<>();
+                res.add(new EvaluationMovement(null, evaluator.evaluate(board)));
+                return res;
+            }
+
+            List<EvaluationMovement> res = new ArrayList<>();
+            List<Movement> movements = board.allLegalDeplacements(Color.other(myColor));
+            if (bestMoveFinded != null)
+                for (Movement m : movements)
+                    if (m.toString().equals(bestMoveFinded.toString())) {
+                        movements.remove(m);
+                        movements.add(0, bestMoveFinded);
+                        break;
+                    }
+            for (Movement m : movements) {
+                board.makeMovement(m);
+                if (!board.isMate(Color.other(myColor))) {
+                    List<EvaluationMovement> tmp = maxValue(board, depth + 1, alpha, beta, res.size() < 2 ? null : res.get(res.size() - 2).getMovement());
+                    board.cancelMovement(m);
+
+                    if (res.size() == 0 || tmp.get(tmp.size() - 1).getEvaluation() < res.get(res.size() - 1).getEvaluation()) {
+                        res = tmp;
+                        res.add(new EvaluationMovement(m, tmp.get(tmp.size() - 1).getEvaluation()));
+                    }
+                    if (res.get(res.size() - 1).getEvaluation() <= alpha)
+                        return res;
+                    beta = Math.min(beta, res.get(res.size() - 1).getEvaluation());
+                } else {
+                    board.cancelMovement(m);
+                }
+            }
+            return res;
         }
     }
 }

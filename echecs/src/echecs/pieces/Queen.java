@@ -45,73 +45,8 @@ public class Queen extends Piece {
     }
 
     @Override
-    public long specializedThreatenedCells(long occupiedCells) {
-        long res = 0;
-        int i = Library.log2(this.position);
-        while (i < 56) {
-            i += 8;
-            if ((Library.pow2(i) & occupiedCells) == 0)
-                res |= Library.pow2(i);
-            else
-                break;
-        }
-        i = Library.log2(this.position);
-        while (i > 8) {
-            i -= 8;
-            if ((Library.pow2(i) & occupiedCells) == 0)
-                res |= Library.pow2(i);
-            else
-                break;
-        }
-        i = Library.log2(this.position);
-        while (i % 8 != 0) {
-            i--;
-            if ((Library.pow2(i) & occupiedCells) == 0)
-                res |= Library.pow2(i);
-            else
-                break;
-        }
-        i = Library.log2(this.position);
-        while (i % 8 != 7) {
-            i++;
-            if ((Library.pow2(i) & occupiedCells) == 0)
-                res |= Library.pow2(i);
-            else
-                break;
-        }
-        i = Library.log2(this.position);
-        while (i > 8 && i % 8 != 0) {
-            i -= 9;
-            if ((Library.pow2(i) & occupiedCells) == 0)
-                res |= Library.pow2(i);
-            else
-                break;
-        }
-        i = Library.log2(this.position);
-        while (i > 8 && i % 8 != 7) {
-            i -= 7;
-            if ((Library.pow2(i) & occupiedCells) == 0)
-                res |= Library.pow2(i);
-            else
-                break;
-        }
-        i = Library.log2(this.position);
-        while (i < 56 && i % 8 != 0) {
-            i += 7;
-            if ((Library.pow2(i) & occupiedCells) == 0)
-                res |= Library.pow2(i);
-            else
-                break;
-        }
-        i = Library.log2(this.position);
-        while (i < 56 && i % 8 != 7) {
-            i += 9;
-            if ((Library.pow2(i) & occupiedCells) == 0)
-                res |= Library.pow2(i);
-            else
-                break;
-        }
-        return res;
+    public long specializedThreatenedCells(long myPieces, long adversePiece) {
+        return this.specializedLegalMovements(myPieces, adversePiece);
     }
 
     @Override

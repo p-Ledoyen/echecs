@@ -42,8 +42,8 @@ public class King extends Piece {
     }
 
     @Override
-    public long specializedThreatenedCells(long occupiedCells) {
-        return this.movements.get(this.position);
+    public long specializedThreatenedCells(long myPieces, long adversePiece) {
+        return this.specializedLegalMovements(myPieces, adversePiece);
     }
 
     @Override

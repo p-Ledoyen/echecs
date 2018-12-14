@@ -111,7 +111,7 @@ public class Board implements Cloneable {
      * @return The cells threatened by the piece (on a bitboard)
      */
     public long attack(Piece piece) {
-        return piece.threatenedCells(this.piecesCells(piece.getColor()));
+        return piece.threatenedCells(this.piecesCells(piece.getColor()), this.piecesCells(Color.other(piece.getColor())));
     }
 
     /**
@@ -137,16 +137,16 @@ public class Board implements Cloneable {
      * @return True if the king is in danger
      */
     public boolean isMate(Color color) {
-        long kingAdversePosition = -1;
+        long kingPosition = -1;
         for (Piece p : this.pieces)
             if (p.getColor() == color && (p instanceof King)) {
-                kingAdversePosition = p.getPosition();
+                kingPosition = p.getPosition();
                 break;
             }
-        if (kingAdversePosition == -1)
+        if (kingPosition == -1)
             throw new RuntimeException("there is no adverse king");
 
-        return (this.getThreatenedCells(Color.other(color)) & kingAdversePosition) > 0;
+        return (this.getThreatenedCells(Color.other(color)) & kingPosition) > 0;
     }
 
     ///////////////
@@ -201,7 +201,7 @@ public class Board implements Cloneable {
         for (Piece p : this.pieces)
             if (p.getPosition() == movement.getFinalPosition() && p.getAlive()) {
                 p.setAlive(false);
-                this.piecesEaten.add(p);
+                this.piecesEaten.push(p);
                 eaten = true;
                 break;
             }
@@ -236,7 +236,9 @@ public class Board implements Cloneable {
      * @param movement The movment to cancel
      */
     public void cancelMovement(Movement movement) {
-        Piece p = this.promotion.pop();
+        Piece p = null;
+        if (!promotion.isEmpty())
+            this.promotion.pop();
 
         for (int i = 0; i < pieces.size(); i++) {
             Piece p1 = pieces.get(i);

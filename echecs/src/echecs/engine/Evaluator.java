@@ -12,7 +12,7 @@ import java.util.List;
 
 public class Evaluator {
 
-    public Color color = Color.WHITE;
+    public Color color;
 
     public void setColor(Color color) {
         this.color = color;
@@ -89,7 +89,6 @@ public class Evaluator {
                         whiteRooks.add((Library.log2(p.getPosition()) % 8));
                 }
 
-
         // pawn as close as possible than the adversial raw
         int pawnPosition = 0;
         for (Piece p : board.getPieces())
@@ -102,6 +101,13 @@ public class Evaluator {
             evaluation += pawnPosition*4;
         else
             evaluation -= pawnPosition*4;
+
+        // Mate bonus / malus
+        if (board.isMate(color))
+            evaluation -= 1000;
+
+        if (board.isMate(Color.other(color)))
+            evaluation += 50;
 
         return evaluation;
     }
