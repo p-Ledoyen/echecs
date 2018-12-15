@@ -24,7 +24,7 @@ public class Evaluator {
      * @param board The board to evaluate
      * @return The evaluation of the board
      */
-    public int evaluate(Board board) {
+    public int evaluate(Board board, Color nextPlayer) {
         int evaluation = 0;
         // Value of pieces
         for (Piece p : board.getPieces())
@@ -98,9 +98,9 @@ public class Evaluator {
                 pawnPosition -= (Library.log2(p.getPosition()) / 8 - 1);
 
         if (color == Color.BLACK)
-            evaluation += pawnPosition*4;
+            evaluation += pawnPosition * 4;
         else
-            evaluation -= pawnPosition*4;
+            evaluation -= pawnPosition * 4;
 
         // Mate bonus / malus
         if (board.isMate(color))
@@ -108,6 +108,22 @@ public class Evaluator {
 
         if (board.isMate(Color.other(color)))
             evaluation += 50;
+
+        // bonus : defend my threatened pieces
+        for (Piece p : board.getPieces()) {
+            if (p.getColor() == color) {
+                if ((board.getProtectedCells(color) & p.getPosition()) > 0)
+                    evaluation += 5;
+                else if ((board.getThreatenedCells(Color.other(color)) & p.getPosition()) > 0 &&
+                        nextPlayer == Color.other(color))
+                    evaluation -= p.getValue();
+            } else {
+                if ((board.getThreatenedCells(color) & p.getPosition()) > 0 &&
+                        (board.getProtectedCells(Color.other(color)) & p.getPosition()) == 0 &&
+                        nextPlayer == color)
+                    evaluation += p.getValue();
+            }
+        }
 
         return evaluation;
     }

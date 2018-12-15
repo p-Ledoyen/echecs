@@ -8,6 +8,8 @@ import java.util.HashMap;
 
 public class Knight extends Piece {
 
+    private HashMap<Long, Long> movements;
+
     public Knight(int pow, Color color) {
         this.color = color;
         this.value = Constant.KnightValue;

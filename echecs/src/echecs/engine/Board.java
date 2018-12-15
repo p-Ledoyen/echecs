@@ -26,7 +26,7 @@ public class Board implements Cloneable {
         // Initilization of the positions
         //      - black pieces
         this.pieces = new ArrayList<>();
-        this.pieces.add(new King(60, Color.BLACK));
+     /*   this.pieces.add(new King(60, Color.BLACK));
         this.pieces.add(new Queen(59, Color.BLACK));
         this.pieces.add(new Bishop(58, Color.BLACK));
         this.pieces.add(new Bishop(61, Color.BLACK));
@@ -59,7 +59,39 @@ public class Board implements Cloneable {
         this.pieces.add(new WhitePawn(12, Color.WHITE));
         this.pieces.add(new WhitePawn(13, Color.WHITE));
         this.pieces.add(new WhitePawn(14, Color.WHITE));
-        this.pieces.add(new WhitePawn(15, Color.WHITE));
+        this.pieces.add(new WhitePawn(15, Color.WHITE));*/
+
+
+        this.pieces.add(new King(60, Color.BLACK));
+        this.pieces.add(new Queen(41, Color.BLACK));
+        this.pieces.add(new Bishop(58, Color.BLACK));
+        this.pieces.add(new Bishop(2, Color.BLACK));
+        this.pieces.add(new Knight(42, Color.BLACK));
+        this.pieces.add(new Knight(30, Color.BLACK));
+        this.pieces.add(new Rook(56, Color.BLACK));
+        this.pieces.add(new Rook(63, Color.BLACK));
+        this.pieces.add(new BlackPawn(48, Color.BLACK));
+        this.pieces.add(new BlackPawn(35, Color.BLACK));
+        this.pieces.add(new BlackPawn(44, Color.BLACK));
+        this.pieces.add(new BlackPawn(49, Color.BLACK));
+        this.pieces.add(new BlackPawn(53, Color.BLACK));
+        this.pieces.add(new BlackPawn(54, Color.BLACK));
+        this.pieces.add(new BlackPawn(55, Color.BLACK));
+
+        //      - white pieces
+        this.pieces.add(new King(4, Color.WHITE));
+        this.pieces.add(new Queen(19, Color.WHITE));
+        this.pieces.add(new Bishop(5, Color.WHITE));
+        this.pieces.add(new Knight(6, Color.WHITE));
+        this.pieces.add(new Knight(18, Color.WHITE));
+        this.pieces.add(new Rook(7, Color.WHITE));
+        this.pieces.add(new Rook(0, Color.WHITE));
+        this.pieces.add(new WhitePawn(24, Color.WHITE));
+        this.pieces.add(new WhitePawn(9, Color.WHITE));
+        this.pieces.add(new WhitePawn(10, Color.WHITE));
+        this.pieces.add(new WhitePawn(29, Color.WHITE));
+        this.pieces.add(new WhitePawn(22, Color.WHITE));
+        this.pieces.add(new WhitePawn(23, Color.WHITE));
     }
 
     ////////////
@@ -81,6 +113,7 @@ public class Board implements Cloneable {
 
     /**
      * Get the cells occupied by a piece.
+     *
      * @return The cells on a bitboard of all cells occupied.
      */
     public long getOccupiedCells() {
@@ -93,6 +126,7 @@ public class Board implements Cloneable {
 
     /**
      * Get the cells occupied by pieces if a certain color.
+     *
      * @param color The color we search the pieces
      * @return All the cells (in a bitboard) occupied by a piece of the color 'color'
      */
@@ -105,17 +139,8 @@ public class Board implements Cloneable {
     }
 
     /**
-     * Get the cells threatened by a piece.
-     *
-     * @param piece The piece we are looking for cells it can attack
-     * @return The cells threatened by the piece (on a bitboard)
-     */
-    public long attack(Piece piece) {
-        return piece.threatenedCells(this.piecesCells(piece.getColor()), this.piecesCells(Color.other(piece.getColor())));
-    }
-
-    /**
      * Get all the cells threatened by a certain color.
+     *
      * @param color The color of the player
      * @return All cells threaten by a piece of the player 'color' (on a bitboard)
      */
@@ -123,8 +148,24 @@ public class Board implements Cloneable {
         long res = 0;
         for (Piece p : this.pieces)
             if (p.getColor() == color && p.getAlive())
-                res |= this.attack(p);
+                res |= p.threatenedCells(this.piecesCells(p.getColor()), this.piecesCells(Color.other(p.getColor())));
         return res;
+    }
+
+
+    /**
+     * Get all the cells defended by a certain color.
+     *
+     * @param color The color of the player
+     * @return All cells threaten by a piece of the player 'color' (on a bitboard)
+     */
+    public long getProtectedCells(Color color) {
+        long res = 0;
+        for (Piece p : this.pieces)
+            if (p.getColor() == color && p.getAlive())
+                res |= p.threatenedCells(0, this.getOccupiedCells());
+        return res;
+
     }
 
     //////////
@@ -133,6 +174,7 @@ public class Board implements Cloneable {
 
     /**
      * Check if the kink of a color is mate.
+     *
      * @param color The color of the king
      * @return True if the king is in danger
      */
@@ -175,6 +217,7 @@ public class Board implements Cloneable {
 
     /**
      * All movements a player can make.
+     *
      * @param color The color of the player
      * @return All movements which can be played by the player 'color'
      */
@@ -194,6 +237,7 @@ public class Board implements Cloneable {
 
     /**
      * Make a movment on the board.
+     *
      * @param movement The movement to make
      */
     public void makeMovement(Movement movement) {
@@ -233,6 +277,7 @@ public class Board implements Cloneable {
 
     /**
      * Cancel a movement.
+     *
      * @param movement The movment to cancel
      */
     public void cancelMovement(Movement movement) {
@@ -273,6 +318,7 @@ public class Board implements Cloneable {
 
     /**
      * Copy a board (to give to differents threads).
+     *
      * @return A new board with the same dipositions of pieces than 'this'
      */
     public Board copy() {
@@ -297,7 +343,7 @@ public class Board implements Cloneable {
             for (int j = 7; j >= 0; j--)
                 res += ligne.charAt(j);
             //res += "\n";
-            res += " ";
+            res += "   ";
         }
         return res;
     }

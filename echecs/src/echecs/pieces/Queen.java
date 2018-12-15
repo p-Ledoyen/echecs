@@ -4,8 +4,6 @@ import echecs.Color;
 import echecs.Constant;
 import echecs.Library;
 
-import java.util.HashMap;
-
 public class Queen extends Piece {
 
     public Queen(int pow, Color color) {
@@ -15,33 +13,6 @@ public class Queen extends Piece {
         this.position = Library.pow2(pow);
 
         this.alive = true;
-        this.movements = new HashMap<>();
-        for (int i = 0; i < 64; i++) {
-            long dep = 0;
-            for (int j = i % 8; j < 64; j += 8)
-                if (j != i)
-                    dep |= Library.pow2(j);
-            for (int j = i / 8 * 8; j < i / 8 * 8 + 8; j++)
-                if (j != i)
-                    dep |= Library.pow2(j);
-            if (i % 8 != 7 && i < 56)
-                for (int j = i + 9; j < 64 && j % 8 != 0; j += 9)
-                    dep |= Library.pow2(j);
-
-            if (i % 8 != 0 && i < 56)
-                for (int j = i + 7; j < 64 && j % 8 != 7; j += 7)
-                    dep |= Library.pow2(j);
-
-            if (i % 8 != 7 && i > 7)
-                for (int j = i - 7; j > 0 && j % 8 != 0; j -= 7)
-                    dep |= Library.pow2(j);
-
-            if (i % 8 != 0 && i > 7)
-                for (int j = i - 9; j > 0 && j % 8 != 7; j -= 9)
-                    dep |= Library.pow2(j);
-
-            this.movements.put(Library.pow2(i), dep);
-        }
     }
 
     @Override

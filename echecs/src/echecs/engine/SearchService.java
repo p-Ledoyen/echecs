@@ -49,6 +49,10 @@ public class SearchService implements Runnable {
         return active;
     }
 
+    public List<EvaluationMovement> getPrevision() {
+        return prevision;
+    }
+
     @Override
     public void run() {
         this.active = true;
@@ -195,6 +199,7 @@ public class SearchService implements Runnable {
                         List<EvaluationMovement> tmp = minValue(board, 1, alpha, beta, this.res.size() < 2 ? null : this.res.get(this.res.size() - 2).getMovement());
                         this.board.cancelMovement(m);
 
+                        //                      System.out.println(m + "  " + tmp.get(tmp.size()-1));
                         if (tmp.size() == 0) {
                             // check mate
                             this.res.add(new EvaluationMovement(m, 10000000));
@@ -235,7 +240,7 @@ public class SearchService implements Runnable {
         private List<EvaluationMovement> maxValue(Board board, int depth, int alpha, int beta, Movement bestMoveFinded) {
             if (depth >= this.maxDepth) {
                 List<EvaluationMovement> res = new ArrayList<>();
-                res.add(new EvaluationMovement(null, evaluator.evaluate(board)));
+                res.add(new EvaluationMovement(null, evaluator.evaluate(board, myColor)));
                 return res;
             }
 
@@ -254,10 +259,18 @@ public class SearchService implements Runnable {
                     List<EvaluationMovement> tmp = minValue(board, depth + 1, alpha, beta, res.size() < 2 ? null : res.get(res.size() - 2).getMovement());
                     board.cancelMovement(m);
 
+                    if (tmp.size() == 0) {
+                        // check mate
+                        res.add(new EvaluationMovement(m, 10000000));
+                        cb.reset();
+                        return res;
+                    }
+
                     if (res.size() == 0 || tmp.get(tmp.size() - 1).getEvaluation() > res.get(res.size() - 1).getEvaluation()) {
                         res = tmp;
                         res.add(new EvaluationMovement(m, tmp.get(tmp.size() - 1).getEvaluation()));
                     }
+
                     if (res.get(res.size() - 1).getEvaluation() >= beta)
                         return res;
                     alpha = Math.max(alpha, res.get(res.size() - 1).getEvaluation());
@@ -275,7 +288,7 @@ public class SearchService implements Runnable {
         private List<EvaluationMovement> minValue(Board board, int depth, int alpha, int beta, Movement bestMoveFinded) {
             if (depth >= this.maxDepth) {
                 List<EvaluationMovement> res = new ArrayList<>();
-                res.add(new EvaluationMovement(null, evaluator.evaluate(board)));
+                res.add(new EvaluationMovement(null, evaluator.evaluate(board, Color.other(myColor))));
                 return res;
             }
 
@@ -294,9 +307,20 @@ public class SearchService implements Runnable {
                     List<EvaluationMovement> tmp = maxValue(board, depth + 1, alpha, beta, res.size() < 2 ? null : res.get(res.size() - 2).getMovement());
                     board.cancelMovement(m);
 
-                    if (res.size() == 0 || tmp.get(tmp.size() - 1).getEvaluation() < res.get(res.size() - 1).getEvaluation()) {
-                        res = tmp;
-                        res.add(new EvaluationMovement(m, tmp.get(tmp.size() - 1).getEvaluation()));
+                    if (tmp.size() == 0) {
+                        // check mate
+                        res.add(new EvaluationMovement(m, -10000000));
+                        cb.reset();
+                        return res;
+                    }
+                    try {
+                        if (res.size() == 0 || tmp.get(tmp.size() - 1).getEvaluation() < res.get(res.size() - 1).getEvaluation()) {
+                            res = tmp;
+                            res.add(new EvaluationMovement(m, tmp.get(tmp.size() - 1).getEvaluation()));
+                        }
+                    } catch (IndexOutOfBoundsException e) {
+                        e.printStackTrace();
+                        System.out.println(m);
                     }
                     if (res.get(res.size() - 1).getEvaluation() <= alpha)
                         return res;

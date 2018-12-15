@@ -130,7 +130,7 @@ public class Engine {
                     searchService.threadCreation();
 
                 try {
-                    Thread.sleep(10000);
+                    Thread.sleep(1000000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -138,6 +138,7 @@ public class Engine {
 
                 searchThread.interrupt();
                 String bestmove = this.searchService.getBestMove();
+                System.out.println("info string " + searchService.getPrevision());
                 System.out.println("info string  best move " + bestmove);
                 board.makeMovement(new Movement(bestmove));
                 System.out.println("bestmove " + bestmove);

@@ -4,8 +4,6 @@ import echecs.Color;
 import echecs.Constant;
 import echecs.Library;
 
-import java.util.HashMap;
-
 public class Bishop extends Piece {
 
     public Bishop(int pow, Color color) {
@@ -14,28 +12,6 @@ public class Bishop extends Piece {
         this.alive = true;
 
         this.position = Library.pow2(pow);
-
-        this.movements = new HashMap<>();
-        for (int i = 0; i < 64; i++) {
-            long dep = 0;
-            if (i % 8 != 7 && i < 56)
-                for (int j = i + 9; j < 64 && j % 8 != 0; j += 9)
-                    dep |= Library.pow2(j);
-
-            if (i % 8 != 0 && i < 56)
-                for (int j = i + 7; j < 64 && j % 8 != 7; j += 7)
-                    dep |= Library.pow2(j);
-
-            if (i % 8 != 7 && i > 7)
-                for (int j = i - 7; j > 0 && j % 8 != 0; j -= 7)
-                    dep |= Library.pow2(j);
-
-            if (i % 8 != 0 && i > 7)
-                for (int j = i - 9; j > 0 && j % 8 != 7; j -= 9)
-                    dep |= Library.pow2(j);
-
-            this.movements.put(Library.pow2(i), dep);
-        }
     }
 
     @Override

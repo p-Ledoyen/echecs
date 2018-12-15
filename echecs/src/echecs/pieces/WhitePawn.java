@@ -8,23 +8,14 @@ import java.util.HashMap;
 
 public class WhitePawn extends Piece {
 
+    private HashMap<Long, Long> threatened;
+
     public WhitePawn(int pow, Color color) {
         this.color = color;
         this.value = Constant.PawnValue;
         this.alive = true;
 
         this.position = Library.pow2(pow);
-
-        this.movements = new HashMap<>();
-        for (int i = 0; i < 64; i++) {
-            long dep = 0;
-            if (i > 7 && i < 16)
-                dep |= Library.pow2(i + 16);
-            if (i < 56)
-                dep |= Library.pow2(i + 8);
-
-            this.movements.put(Library.pow2(i), dep);
-        }
 
         this.threatened = new HashMap<>();
         for (int i = 0; i < 64; i++) {

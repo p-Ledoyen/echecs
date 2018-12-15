@@ -8,6 +8,8 @@ import java.util.HashMap;
 
 public class King extends Piece {
 
+    private HashMap<Long, Long> movements;
+
     public King(int pow, Color color) {
         this.color = color;
         this.value = Constant.KingValue;

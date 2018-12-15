@@ -2,13 +2,9 @@ package echecs.pieces;
 
 import echecs.Color;
 
-import java.util.HashMap;
-
 public abstract class Piece implements Cloneable {
 
     protected Long position;
-    protected HashMap<Long, Long> movements;
-    protected HashMap<Long, Long> threatened;
     protected Color color;
     protected int value;
     protected boolean alive;

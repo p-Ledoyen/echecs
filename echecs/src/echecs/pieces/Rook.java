@@ -4,8 +4,6 @@ import echecs.Color;
 import echecs.Constant;
 import echecs.Library;
 
-import java.util.HashMap;
-
 public class Rook extends Piece {
 
     public Rook(int pow, Color color) {
@@ -14,19 +12,6 @@ public class Rook extends Piece {
         this.alive = true;
 
         this.position = Library.pow2(pow);
-
-        this.movements = new HashMap<>();
-        for (int i = 0; i < 64; i++) {
-            long dep = 0;
-            for (int j = i % 8; j < 64; j += 8)
-                if (j != i)
-                    dep |= Library.pow2(j);
-
-            for (int j = i / 8 * 8; j < i / 8 * 8 + 8; j++)
-                if (j != i)
-                    dep |= Library.pow2(j);
-            this.movements.put(Library.pow2(i), dep);
-        }
     }
 
     @Override
