@@ -26,7 +26,7 @@ public class Board implements Cloneable {
         // Initilization of the positions
         //      - black pieces
         this.pieces = new ArrayList<>();
-     /*   this.pieces.add(new King(60, Color.BLACK));
+        this.pieces.add(new King(60, Color.BLACK));
         this.pieces.add(new Queen(59, Color.BLACK));
         this.pieces.add(new Bishop(58, Color.BLACK));
         this.pieces.add(new Bishop(61, Color.BLACK));
@@ -59,39 +59,7 @@ public class Board implements Cloneable {
         this.pieces.add(new WhitePawn(12, Color.WHITE));
         this.pieces.add(new WhitePawn(13, Color.WHITE));
         this.pieces.add(new WhitePawn(14, Color.WHITE));
-        this.pieces.add(new WhitePawn(15, Color.WHITE));*/
-
-
-        this.pieces.add(new King(60, Color.BLACK));
-        this.pieces.add(new Queen(41, Color.BLACK));
-        this.pieces.add(new Bishop(58, Color.BLACK));
-        this.pieces.add(new Bishop(2, Color.BLACK));
-        this.pieces.add(new Knight(42, Color.BLACK));
-        this.pieces.add(new Knight(30, Color.BLACK));
-        this.pieces.add(new Rook(56, Color.BLACK));
-        this.pieces.add(new Rook(63, Color.BLACK));
-        this.pieces.add(new BlackPawn(48, Color.BLACK));
-        this.pieces.add(new BlackPawn(35, Color.BLACK));
-        this.pieces.add(new BlackPawn(44, Color.BLACK));
-        this.pieces.add(new BlackPawn(49, Color.BLACK));
-        this.pieces.add(new BlackPawn(53, Color.BLACK));
-        this.pieces.add(new BlackPawn(54, Color.BLACK));
-        this.pieces.add(new BlackPawn(55, Color.BLACK));
-
-        //      - white pieces
-        this.pieces.add(new King(4, Color.WHITE));
-        this.pieces.add(new Queen(19, Color.WHITE));
-        this.pieces.add(new Bishop(5, Color.WHITE));
-        this.pieces.add(new Knight(6, Color.WHITE));
-        this.pieces.add(new Knight(18, Color.WHITE));
-        this.pieces.add(new Rook(7, Color.WHITE));
-        this.pieces.add(new Rook(0, Color.WHITE));
-        this.pieces.add(new WhitePawn(24, Color.WHITE));
-        this.pieces.add(new WhitePawn(9, Color.WHITE));
-        this.pieces.add(new WhitePawn(10, Color.WHITE));
-        this.pieces.add(new WhitePawn(29, Color.WHITE));
-        this.pieces.add(new WhitePawn(22, Color.WHITE));
-        this.pieces.add(new WhitePawn(23, Color.WHITE));
+        this.pieces.add(new WhitePawn(15, Color.WHITE));
     }
 
     ////////////

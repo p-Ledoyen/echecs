@@ -66,7 +66,6 @@ public class SearchService implements Runnable {
     public void threadCreation() {
         maxDepth = 1;
         if (this.prevision != null) {
-            //System.out.println("extract prevision");
             if (this.prevision.size() > 1)
                 this.prevision.remove(this.prevision.size() - 1);
             if (this.prevision.size() > 1)
@@ -102,32 +101,23 @@ public class SearchService implements Runnable {
             this.runnables.get(i).set(boards.get(i), movements.get(i), cb);
         }
 
-        long time = System.currentTimeMillis();
-        //System.out.println("info string " + maxDepth);
-
         // Start all threads
         for (Thread t : runnables)
             new java.lang.Thread(t).start();
 
-        // while (System.currentTimeMillis() - time < 40000) {
-        while (maxDepth < 3) {
+        long time = System.currentTimeMillis();
+        while (System.currentTimeMillis() - time < 3000) {
             maxDepth++;
-            System.out.println("info string depth = " + maxDepth);
-            //System.out.println("attente des thread");
             try {
                 cb.await();
-                //System.out.println("fin attente");
             } catch (InterruptedException e) {
-                System.out.println("inteppruted expcetion dans creation");
                 return;
             } catch (BrokenBarrierException e) {
-                System.out.println("BrokenBarrierException dans creation");
                 return;
             }
 
             for (int i = 0; i < Constant.THREADS_NB; i++) {
                 res.set(i, runnables.get(i).getRes());
-                //System.out.println("info string result du thread " + i + "  " + runnables.get(i).getRes());
             }
 
             // get the best result of all threads
@@ -140,7 +130,6 @@ public class SearchService implements Runnable {
                 }
             }
             prevision = res.get(bestIndex);
-            //System.out.println("info string previsions fin depth " + maxDepth + "  " + prevision);
             bestMove = prevision.get(prevision.size() - 1).getMovement().toString();
             adverseBestMove = prevision.get(prevision.size() - 2).getMovement().toString();
 
@@ -189,9 +178,7 @@ public class SearchService implements Runnable {
             int beta = 10000;
 
             long time = System.currentTimeMillis();
-            // while (System.currentTimeMillis() - time < 40000) {
-            while (maxDepth < 4) {
-                //System.out.println("demarage de la recherche");
+            while (System.currentTimeMillis() - time < 3000) {
                 for (Movement m : movements) {
                     board.makeMovement(m);
 
@@ -199,7 +186,6 @@ public class SearchService implements Runnable {
                         List<EvaluationMovement> tmp = minValue(board, 1, alpha, beta, this.res.size() < 2 ? null : this.res.get(this.res.size() - 2).getMovement());
                         this.board.cancelMovement(m);
 
-                        //                      System.out.println(m + "  " + tmp.get(tmp.size()-1));
                         if (tmp.size() == 0) {
                             // check mate
                             this.res.add(new EvaluationMovement(m, 10000000));
@@ -221,13 +207,11 @@ public class SearchService implements Runnable {
                 }
                 try {
 
-                    //System.out.println("fin recherche");
                     cb.await();
 
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 } catch (BrokenBarrierException e) {
-                    System.out.println("Broken barrier exception dans un thread");
                     return;
                 }
                 maxDepth++;
@@ -320,7 +304,6 @@ public class SearchService implements Runnable {
                         }
                     } catch (IndexOutOfBoundsException e) {
                         e.printStackTrace();
-                        System.out.println(m);
                     }
                     if (res.get(res.size() - 1).getEvaluation() <= alpha)
                         return res;
