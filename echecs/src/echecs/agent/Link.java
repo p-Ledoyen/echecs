@@ -1,4 +1,4 @@
-package echecs.engine;
+package echecs.agent;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -19,15 +19,14 @@ public class Link implements Runnable {
 
         while (this.stillRunning) {
             String input = this.stdin.nextLine();
-            List<String> tokens = new ArrayList<String>();
+            List<String> tokens = new ArrayList<>();
 
-            for (String token : input.split("[ \t]+"))
-                tokens.add(token);
+            tokens.addAll(Arrays.asList(input.split("[ \t]+")));
 
             ListIterator<String> iterator = tokens.listIterator();
 
             String command = null;
-            String next, next2 = null;
+            String next, next2;
 
             while (iterator.hasNext()) {
                 next = iterator.next();
@@ -60,7 +59,8 @@ public class Link implements Runnable {
                                     if (next.equals("code") && iterator.hasNext()) {
                                         command += " " + next + " " + iterator.next();
                                         break;
-                                    } else if (!next.equals("code")) command += " " + next;
+                                    } else if (!next.equals("code"))
+                                        command += " " + next;
                                 }
                             }
                         }

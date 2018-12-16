@@ -1,4 +1,6 @@
-package echecs;
+package echecs.agent;
+
+import echecs.Library;
 
 public class Movement {
 

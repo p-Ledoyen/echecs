@@ -1,8 +1,7 @@
-package echecs.engine;
+package echecs.agent;
 
 import echecs.Color;
 import echecs.Library;
-import echecs.Movement;
 import echecs.pieces.*;
 
 import java.util.ArrayList;
@@ -189,7 +188,7 @@ public class Board implements Cloneable {
      * @param color The color of the player
      * @return All movements which can be played by the player 'color'
      */
-    public List<Movement> allLegalDeplacements(Color color) {
+    public List<Movement> allLegalMovements(Color color) {
         List<Movement> res = new ArrayList<>();
         for (int i = 0; i < pieces.size(); i++) {
             Piece p = pieces.get(i);
@@ -251,7 +250,7 @@ public class Board implements Cloneable {
     public void cancelMovement(Movement movement) {
         Piece p = null;
         if (!promotion.isEmpty())
-            this.promotion.pop();
+            p = this.promotion.pop();
 
         for (int i = 0; i < pieces.size(); i++) {
             Piece p1 = pieces.get(i);
@@ -272,16 +271,6 @@ public class Board implements Cloneable {
         if (p != null)
             p.setAlive(true);
 
-    }
-
-    /**
-     * Get number of 1 on a bitboard.
-     *
-     * @param bitboard The bitboard.
-     * @return
-     */
-    public int number(long bitboard) {
-        return Long.toBinaryString(bitboard).replace("0", "").length();
     }
 
     /**

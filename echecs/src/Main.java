@@ -1,4 +1,4 @@
-import echecs.engine.Engine;
+import echecs.agent.Engine;
 
 public class Main {
 

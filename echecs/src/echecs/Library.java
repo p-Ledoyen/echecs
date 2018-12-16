@@ -121,4 +121,14 @@ public abstract class Library {
         }
         return pow2((Integer.parseInt("" + row) - 1) * 8 + column);
     }
+
+    /**
+     * Get number of 1 in a binary number.
+     *
+     * @param l The binary number.
+     * @return Number of 1 in the binary number
+     */
+    public static int extractNumber1(long l) {
+        return Long.toBinaryString(l).replace("0", "").length();
+    }
 }

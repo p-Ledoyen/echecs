@@ -1,10 +1,10 @@
-package echecs;
+package echecs.agent;
 
-public class EvaluationMovement {
+public class Node {
     private Movement movement;
     private int evaluation;
 
-    public EvaluationMovement(Movement movement, int evaluation) {
+    public Node(Movement movement, int evaluation) {
         this.movement = movement;
         this.evaluation = evaluation;
     }

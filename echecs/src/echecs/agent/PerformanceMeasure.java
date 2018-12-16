@@ -1,4 +1,4 @@
-package echecs.engine;
+package echecs.agent;
 
 import echecs.Color;
 import echecs.Library;
@@ -10,7 +10,7 @@ import echecs.pieces.WhitePawn;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Evaluator {
+public class PerformanceMeasure {
 
     public Color color;
 
@@ -38,9 +38,9 @@ public class Evaluator {
         //      - freedom degree
         for (Piece p : board.getPieces())
             if (p.getColor() == color)
-                evaluation += board.number(board.legalMovements(p));
+                evaluation += Library.extractNumber1(board.legalMovements(p));
             else
-                evaluation -= board.number(board.legalMovements(p));
+                evaluation -= Library.extractNumber1(board.legalMovements(p));
 
         //      - control center
         long blackThreatenedCells = board.getThreatenedCells(Color.BLACK);
@@ -116,7 +116,7 @@ public class Evaluator {
                     evaluation += 5;
                 else if ((board.getThreatenedCells(Color.other(color)) & p.getPosition()) > 0 &&
                         nextPlayer == Color.other(color))
-                    evaluation -= p.getValue();
+                    evaluation -= p.getValue() / 2;
             } else {
                 if ((board.getThreatenedCells(color) & p.getPosition()) > 0 &&
                         (board.getProtectedCells(Color.other(color)) & p.getPosition()) == 0 &&
